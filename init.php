@@ -15,7 +15,7 @@ class Af_Zz_Img_Phash extends Plugin {
 
 	function about() {
 		return array(1.0,
-			"Mark articles with similar images as read using perceptual hashing (requires GD)",
+			"Mark articles with similar images as read using perceptual hashing (requires GD, PostgreSQL)",
 			"fox");
 	}
 
@@ -68,6 +68,10 @@ class Af_Zz_Img_Phash extends Plugin {
 		if ($args != "prefFeeds") return;
 
 		print "<div dojoType=\"dijit.layout.AccordionPane\" title=\"".__('Mark similar images as read')."\">";
+
+		if (DB_TYPE != "pgsql") {
+			print_error("Database type not supported.");
+		}
 
 		$similarity = (int) $this->host->get($this, "similarity");
 		$domains_list = $this->host->get($this, "domains_list");
@@ -210,6 +214,8 @@ class Af_Zz_Img_Phash extends Plugin {
 	}
 
 	function hook_article_filter($article) {
+
+		if (DB_TYPE != "pgsql") return $article;
 
 		$enable_globally = $this->host->get($this, "enable_globally");
 		$domains_list = $this->host->get($this, "domains_list");
