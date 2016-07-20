@@ -12,7 +12,6 @@ class Af_Zz_Img_Phash extends Plugin {
 	private $default_domains_list = "imgur.com i.reddituploads.com pbs.twimg.com i.redd.it i.sli.mg media.tumblr.com";
 	private $default_similarity = 2;
 	private $cache_dir;
-	private $bitcount_func = DB_TYPE == "pgsql" ? "unique_1bits" : "bit_count";
 
 	function about() {
 		return array(1.0,
@@ -419,7 +418,7 @@ class Af_Zz_Img_Phash extends Plugin {
 							created_at >= ".$this->interval_days(30)." AND
 							url != '$src_escaped' AND
 							article_guid != '$article_guid' AND
-							".$this->bitcount_func."($phash, phash) <= $similarity");
+							".$this->bitcount_func($phash)." <= $similarity");
 
 						$csim = db_fetch_result($result, 0, "csim");
 
@@ -514,9 +513,9 @@ class Af_Zz_Img_Phash extends Plugin {
 			print "<p>Perceptual hash: " . base_convert($phash, 10, 16) . "<br/>";
 			print "Registered to: " . $article_title . "</p>";
 
-			$result = db_query("SELECT url, article_guid, ".$this->bitcount_func."($phash, phash) AS distance
+			$result = db_query("SELECT url, article_guid, ".$this->bitcount_func($phash)." AS distance
 				FROM ttrss_plugin_img_phash_urls WHERE				
-				".$this->bitcount_func."($phash, phash) <= $similarity
+				".$this->bitcount_func($phash)." <= $similarity
 				ORDER BY distance LIMIT 30");
 
 			print "<ul class=\"browseFeedList\" style=\"border-width : 1px\">";
@@ -553,6 +552,14 @@ class Af_Zz_Img_Phash extends Plugin {
 			return "NOW() - INTERVAL '$days days' ";
 		} else {
 			return "DATE_SUB(NOW(), INTERVAL $days DAY) ";
+		}
+	}
+
+	private function bitcount_func($phash) {
+		if (DB_TYPE == "pgsql") {
+			return "unique_1bits('$phash', phash)";
+		} else {
+			return "bit_count('$phash' ^ phash)";
 		}
 	}
 }
