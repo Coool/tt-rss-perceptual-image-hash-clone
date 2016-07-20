@@ -9,7 +9,7 @@ use Jenssegers\ImageHash\ImageHash;
 class Af_Zz_Img_Phash extends Plugin {
 
 	private $host;
-	private $default_domains_list = "imgur.com i.reddituploads.com pbs.twimg.com i.redd.it i.sli.mg";
+	private $default_domains_list = "imgur.com i.reddituploads.com pbs.twimg.com i.redd.it i.sli.mg media.tumblr.com";
 	private $default_similarity = 3;
 	private $cache_dir;
 
