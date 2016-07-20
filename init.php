@@ -189,7 +189,7 @@ class Af_Zz_Img_Phash extends Plugin {
 	}
 
 	private function rewrite_duplicate($doc, $img) {
-		$src = $img->getAttribute("src");
+		$src = $this->absolutize_url($img->getAttribute("src"));
 
 		$p = $doc->createElement('p');
 
@@ -201,7 +201,7 @@ class Af_Zz_Img_Phash extends Plugin {
 		$b = $doc->createElement("a");
 		$b->setAttribute("href", "#");
 		$b->setAttribute("onclick", "showPhashSimilar(this)");
-		$b->setAttribute("data-check-url", $src);
+		$b->setAttribute("data-check-url", $this->absolutize_url($src));
 		$b->appendChild(new DOMText("(similar)"));
 
 		$p->appendChild($a);
@@ -242,11 +242,7 @@ class Af_Zz_Img_Phash extends Plugin {
 			foreach ($imgs as $img) {
 
 				$src = $img->getAttribute("src");
-				$src = rewrite_relative_url($article["link"], $src);
-
-				// let's absolutize schema-less urls to reduce database clutter a bit
-				if (strpos($src, "//") === 0)
-					$src = "https:" . $src;
+				$src = $this->absolutize_url(rewrite_relative_url($article["link"], $src));
 
 				$domain_found = $this->check_src_domain($src, $domains_list);
 
@@ -368,11 +364,7 @@ class Af_Zz_Img_Phash extends Plugin {
 			foreach ($imgs as $img) {
 
 				$src = $img->getAttribute("src");
-				$src = rewrite_relative_url($article["link"], $src);
-
-				// let's absolutize schema-less urls to reduce database clutter a bit
-				if (strpos($src, "//") === 0)
-					$src = "https:" . $src;
+				$src = $this->absolutize_url(rewrite_relative_url($article["link"], $src));
 
 				$domain_found = $this->check_src_domain($src, $domains_list);
 
@@ -486,13 +478,14 @@ class Af_Zz_Img_Phash extends Plugin {
 
 		print "<img style='float : right; max-width : 64px; max-height : 64px; height : auto; width : auto;' src=\"$url_htmlescaped\">";
 
-		print "<h2><a target=\"_blank\" href=\"$url_htmlescaped\">".truncate_middle($url, 48)."</a></h2>";
+		print "<h2><a target=\"_blank\" href=\"$url_htmlescaped\">".truncate_middle($url_htmlescaped, 48)."</a></h2>";
 
 		$result = db_query("SELECT phash,article_guid FROM ttrss_plugin_img_phash_urls WHERE
 			owner_uid = $owner_uid AND
 			url = '$url' LIMIT 1");
 
 		if (db_num_rows($result) != 0) {
+
 			$phash = db_escape_string(db_fetch_result($result, 0, "phash"));
 			$article_guid = db_escape_string(db_fetch_result($result, 0, "article_guid"));
 
@@ -526,6 +519,13 @@ class Af_Zz_Img_Phash extends Plugin {
 		}
 
 
+	}
+
+	private function absolutize_url($src) {
+		if (strpos($src, "//") === 0)
+			$src = "https:" . $src;
+
+		return $src;
 	}
 }
 ?>
