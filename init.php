@@ -516,10 +516,9 @@ class Af_Zz_Img_Phash extends Plugin {
 			print "Registered to: " . $article_title . "</p>";
 
 			$result = db_query("SELECT url, article_guid, unique_1bits($phash, phash) AS distance
-				FROM ttrss_plugin_img_phash_urls WHERE
-				created_at >= NOW() - INTERVAL '30 days' AND
-				unique_1bits($phash, phash) <= $similarity AND
-				url != '$url' ORDER BY distance LIMIT 30");
+				FROM ttrss_plugin_img_phash_urls WHERE				
+				unique_1bits($phash, phash) <= $similarity
+				ORDER BY distance LIMIT 30");
 
 			print "<ul class=\"browseFeedList\" style=\"border-width : 1px\">";
 
