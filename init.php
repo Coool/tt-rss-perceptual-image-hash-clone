@@ -413,19 +413,20 @@ class Af_Zz_Img_Phash extends Plugin {
 
 						//$similarity = 15;
 
-						$result = db_query("SELECT COUNT(*) AS csim FROM ttrss_plugin_img_phash_urls WHERE
+						$result = db_query("SELECT article_guid FROM ttrss_plugin_img_phash_urls WHERE
 							owner_uid = $owner_uid AND
 							created_at >= ".$this->interval_days(30)." AND
-							url != '$src_escaped' AND
-							article_guid != '$article_guid' AND
-							".$this->bitcount_func($phash)." <= $similarity");
+							".$this->bitcount_func($phash)." <= $similarity ORDER BY created_at LIMIT 1");
 
-						$csim = db_fetch_result($result, 0, "csim");
+						if (db_num_rows($result) > 0) {
 
-						if ($csim > 0) {
-							$need_saving = true;
+							$test_guid = db_fetch_result($result, 0, "article_guid");
 
-							$this->rewrite_duplicate($doc, $img, $api_mode);
+							if ($test_guid != $article_guid) {
+								$need_saving = true;
+
+								$this->rewrite_duplicate($doc, $img, $api_mode);
+							}
 						}
 					}
 				}
