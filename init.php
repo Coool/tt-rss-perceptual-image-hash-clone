@@ -198,7 +198,7 @@ class Af_Zz_Img_Phash extends Plugin {
 
 		$a = $doc->createElement("a");
 		$a->setAttribute("href", $src);
-		$a->appendChild(new DOMText("$src"));
+		$a->appendChild(new DOMText(truncate_middle($src, 48, "...")));
 
 		$b = $doc->createElement("a");
 		$b->setAttribute("href", "#");
