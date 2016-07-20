@@ -12,10 +12,11 @@ class Af_Zz_Img_Phash extends Plugin {
 	private $default_domains_list = "imgur.com i.reddituploads.com pbs.twimg.com i.redd.it i.sli.mg media.tumblr.com";
 	private $default_similarity = 2;
 	private $cache_dir;
+	private $bitcount_func = DB_TYPE == "pgsql" ? "unique_1bits" : "bit_count";
 
 	function about() {
 		return array(1.0,
-			"Filter duplicate images using perceptual hashing (requires GD, PostgreSQL)",
+			"Filter duplicate images using perceptual hashing (requires GD)",
 			"fox");
 	}
 
@@ -70,13 +71,11 @@ class Af_Zz_Img_Phash extends Plugin {
 
 		print "<div dojoType=\"dijit.layout.AccordionPane\" title=\"".__('Filter similar images')."\">";
 
-		if (DB_TYPE != "pgsql") {
-			print_error("Database type not supported.");
-		}
-
-		$result = db_query("select 'unique_1bits'::regproc");
-		if (db_num_rows($result) == 0) {
-			print_error("Required function from count_bits extension not found.");
+		if (DB_TYPE == "pgsql") {
+			$result = db_query("select 'unique_1bits'::regproc");
+			if (db_num_rows($result) == 0) {
+				print_error("Required function from count_bits extension not found.");
+			}
 		}
 
 		$similarity = (int) $this->host->get($this, "similarity", $this->default_similarity);
@@ -357,8 +356,10 @@ class Af_Zz_Img_Phash extends Plugin {
 
 	function hook_render_article_cdm($article, $api_mode = false) {
 
-		$result = db_query("select 'unique_1bits'::regproc");
-		if (db_num_rows($result) == 0) return $article;
+		if (DB_TYPE == "pgsql") {
+			$result = db_query("select 'unique_1bits'::regproc");
+			if (db_num_rows($result) == 0) return $article;
+		}
 
 		$owner_uid = $_SESSION["uid"];
 
@@ -420,7 +421,7 @@ class Af_Zz_Img_Phash extends Plugin {
 							created_at >= NOW() - INTERVAL '30 days' AND
 							url != '$src_escaped' AND
 							article_guid != '$article_guid' AND
-							unique_1bits($phash, phash) <= $similarity");
+							".$this->bitcount_func."($phash, phash) <= $similarity");
 
 						$csim = db_fetch_result($result, 0, "csim");
 
@@ -515,9 +516,9 @@ class Af_Zz_Img_Phash extends Plugin {
 			print "<p>Perceptual hash: " . base_convert($phash, 10, 16) . "<br/>";
 			print "Registered to: " . $article_title . "</p>";
 
-			$result = db_query("SELECT url, article_guid, unique_1bits($phash, phash) AS distance
+			$result = db_query("SELECT url, article_guid, ".$this->bitcount_func."($phash, phash) AS distance
 				FROM ttrss_plugin_img_phash_urls WHERE				
-				unique_1bits($phash, phash) <= $similarity
+				".$this->bitcount_func."($phash, phash) <= $similarity
 				ORDER BY distance LIMIT 30");
 
 			print "<ul class=\"browseFeedList\" style=\"border-width : 1px\">";
