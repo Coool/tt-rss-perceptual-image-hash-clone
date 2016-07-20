@@ -485,7 +485,7 @@ class Af_Zz_Img_Phash extends Plugin {
 				$article_title = "N/A ($article_guid)";
 			}
 
-			print "<p>Perceptual hash: " . sprintf("%x", $phash) . "<br/>";
+			print "<p>Perceptual hash: " . base_convert($phash, 10, 16) . "<br/>";
 			print "Registered to: " . $article_title . "</p>";
 
 			$result = db_query("SELECT url, ttrss_plugin_img_phash_bitcount($phash # phash) AS distance
