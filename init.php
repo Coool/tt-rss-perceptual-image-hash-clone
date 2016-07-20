@@ -74,6 +74,11 @@ class Af_Zz_Img_Phash extends Plugin {
 			print_error("Database type not supported.");
 		}
 
+		$result = db_query("select 'unique_1bits'::regproc");
+		if (db_num_rows($result) == 0) {
+			print_error("Required function from count_bits extension not found.");
+		}
+
 		$similarity = (int) $this->host->get($this, "similarity", $this->default_similarity);
 		$domains_list = $this->host->get($this, "domains_list", $this->default_domains_list);
 
@@ -352,6 +357,9 @@ class Af_Zz_Img_Phash extends Plugin {
 
 	function hook_render_article_cdm($article, $api_mode = false) {
 
+		$result = db_query("select 'unique_1bits'::regproc");
+		if (db_num_rows($result) == 0) return $article;
+
 		$owner_uid = $_SESSION["uid"];
 
 		$doc = new DOMDocument();
@@ -409,9 +417,10 @@ class Af_Zz_Img_Phash extends Plugin {
 
 						$result = db_query("SELECT COUNT(*) AS csim FROM ttrss_plugin_img_phash_urls WHERE
 							owner_uid = $owner_uid AND
+							created_at >= NOW() - INTERVAL '30 days' AND
 							url != '$src_escaped' AND
 							article_guid != '$article_guid' AND
-							ttrss_plugin_img_phash_bitcount($phash # phash) <= $similarity");
+							unique_1bits($phash, phash) <= $similarity");
 
 						$csim = db_fetch_result($result, 0, "csim");
 
@@ -439,6 +448,8 @@ class Af_Zz_Img_Phash extends Plugin {
 				unlink($file);
 			}
 		}
+
+		db_query("DELETE FROM ttrss_plugin_img_phash_urls WHERE created_at < NOW() - INTERVAL '180 days'");
 	}
 
 	private function check_src_domain($src, $domains_list) {
@@ -504,9 +515,10 @@ class Af_Zz_Img_Phash extends Plugin {
 			print "<p>Perceptual hash: " . base_convert($phash, 10, 16) . "<br/>";
 			print "Registered to: " . $article_title . "</p>";
 
-			$result = db_query("SELECT url, article_guid, ttrss_plugin_img_phash_bitcount($phash # phash) AS distance
+			$result = db_query("SELECT url, article_guid, unique_1bits($phash, phash) AS distance
 				FROM ttrss_plugin_img_phash_urls WHERE
-				ttrss_plugin_img_phash_bitcount($phash # phash) <= $similarity AND
+				created_at >= NOW() - INTERVAL '30 days' AND
+				unique_1bits($phash, phash) <= $similarity AND
 				url != '$url' ORDER BY distance LIMIT 30");
 
 			print "<ul class=\"browseFeedList\" style=\"border-width : 1px\">";
