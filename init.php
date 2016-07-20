@@ -61,6 +61,7 @@ class Af_Zz_Img_Phash extends Plugin {
 		$host->add_hook($host::HOOK_HOUSE_KEEPING, $this);
 		$host->add_hook($host::HOOK_RENDER_ARTICLE, $this);
 		$host->add_hook($host::HOOK_RENDER_ARTICLE_CDM, $this);
+		$host->add_hook($host::HOOK_RENDER_ARTICLE_API, $this);
 
 	}
 
@@ -188,7 +189,7 @@ class Af_Zz_Img_Phash extends Plugin {
 		$this->host->set($this, "enabled_feeds", $enabled_feeds);
 	}
 
-	private function rewrite_duplicate($doc, $img) {
+	private function rewrite_duplicate($doc, $img, $api_mode = false) {
 		$src = $this->absolutize_url($img->getAttribute("src"));
 
 		$p = $doc->createElement('p');
@@ -198,15 +199,18 @@ class Af_Zz_Img_Phash extends Plugin {
 		$a->setAttribute("target", "_blank");
 		$a->appendChild(new DOMText(truncate_middle($src, 48, "...")));
 
-		$b = $doc->createElement("a");
-		$b->setAttribute("href", "#");
-		$b->setAttribute("onclick", "showPhashSimilar(this)");
-		$b->setAttribute("data-check-url", $this->absolutize_url($src));
-		$b->appendChild(new DOMText("(similar)"));
-
 		$p->appendChild($a);
-		$p->appendChild(new DOMText(" "));
-		$p->appendChild($b);
+
+		if (!$api_mode) {
+			$b = $doc->createElement("a");
+			$b->setAttribute("href", "#");
+			$b->setAttribute("onclick", "showPhashSimilar(this)");
+			$b->setAttribute("data-check-url", $this->absolutize_url($src));
+			$b->appendChild(new DOMText("(similar)"));
+
+			$p->appendChild(new DOMText(" "));
+			$p->appendChild($b);
+		}
 
 		$img->parentNode->replaceChild($p, $img);
 	}
@@ -340,7 +344,13 @@ class Af_Zz_Img_Phash extends Plugin {
 		return $this->hook_render_article_cdm($article);
 	}
 
-	function hook_render_article_cdm($article) {
+	function hook_render_article_api($headline) {
+
+
+		return $this->hook_render_article_cdm($headline["headline"], true);
+	}
+
+	function hook_render_article_cdm($article, $api_mode = false) {
 
 		$owner_uid = $_SESSION["uid"];
 
@@ -364,7 +374,7 @@ class Af_Zz_Img_Phash extends Plugin {
 			foreach ($imgs as $img) {
 
 				$src = $img->getAttribute("src");
-				$src = $this->absolutize_url(rewrite_relative_url($article["link"], $src));
+				$src = $this->absolutize_url(rewrite_relative_url($article["link"], $src, $api_mode));
 
 				$domain_found = $this->check_src_domain($src, $domains_list);
 
@@ -381,7 +391,7 @@ class Af_Zz_Img_Phash extends Plugin {
 					if (db_num_rows($result) > 0) {
 						$need_saving = true;
 
-						$this->rewrite_duplicate($doc, $img);
+						$this->rewrite_duplicate($doc, $img, $api_mode);
 
 						continue;
 					}
@@ -408,7 +418,7 @@ class Af_Zz_Img_Phash extends Plugin {
 						if ($csim > 0) {
 							$need_saving = true;
 
-							$this->rewrite_duplicate($doc, $img);
+							$this->rewrite_duplicate($doc, $img, $api_mode);
 						}
 					}
 				}
