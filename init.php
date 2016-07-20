@@ -10,12 +10,12 @@ class Af_Zz_Img_Phash extends Plugin {
 
 	private $host;
 	private $default_domains_list = "imgur.com i.reddituploads.com i.redd.it";
-	private $default_similarity = 4;
+	private $default_similarity = 3;
 	private $cache_dir;
 
 	function about() {
 		return array(1.0,
-			"Mark articles with similar images as read using perceptual hashing (requires GD, PostgreSQL)",
+			"Filter duplicate images using perceptual hashing (requires GD, PostgreSQL)",
 			"fox");
 	}
 
@@ -67,7 +67,7 @@ class Af_Zz_Img_Phash extends Plugin {
 	function hook_prefs_tab($args) {
 		if ($args != "prefFeeds") return;
 
-		print "<div dojoType=\"dijit.layout.AccordionPane\" title=\"".__('Mark similar images as read')."\">";
+		print "<div dojoType=\"dijit.layout.AccordionPane\" title=\"".__('Filter similar images')."\">";
 
 		if (DB_TYPE != "pgsql") {
 			print_error("Database type not supported.");
@@ -103,7 +103,7 @@ class Af_Zz_Img_Phash extends Plugin {
 		print "<input dojoType=\"dijit.form.TextBox\" style=\"display : none\" name=\"method\" value=\"save\">";
 		print "<input dojoType=\"dijit.form.TextBox\" style=\"display : none\" name=\"plugin\" value=\"af_zz_img_phash\">";
 
-		print "<p>" . format_notice("Hamming distance is an integer where lower values indicate images being more similar.");
+		print "<p>" . format_notice("Lower hamming distance value indicates images being more similar.");
 
 		print "<h3>" . __("Global settings") . "</h3>";
 
@@ -155,7 +155,7 @@ class Af_Zz_Img_Phash extends Plugin {
 	}
 
 	function hook_prefs_edit_feed($feed_id) {
-		print "<div class=\"dlgSec\">".__("Image similarity")."</div>";
+		print "<div class=\"dlgSec\">".__("Similar images")."</div>";
 		print "<div class=\"dlgSecCont\">";
 
 		$enabled_feeds = $this->host->get($this, "enabled_feeds");
@@ -166,7 +166,7 @@ class Af_Zz_Img_Phash extends Plugin {
 
 		print "<hr/><input dojoType=\"dijit.form.CheckBox\" type=\"checkbox\" id=\"phash_similarity_enabled\"
 			name=\"phash_similarity_enabled\"
-			$checked>&nbsp;<label for=\"phash_similarity_enabled\">".__('Mark similar images as read')."</label>";
+			$checked>&nbsp;<label for=\"phash_similarity_enabled\">".__('Filter similar images')."</label>";
 
 		print "</div>";
 	}
