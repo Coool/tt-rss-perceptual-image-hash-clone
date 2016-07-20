@@ -73,13 +73,10 @@ class Af_Zz_Img_Phash extends Plugin {
 			print_error("Database type not supported.");
 		}
 
-		$similarity = (int) $this->host->get($this, "similarity");
-		$domains_list = $this->host->get($this, "domains_list");
+		$similarity = (int) $this->host->get($this, "similarity", $this->default_similarity);
+		$domains_list = $this->host->get($this, "domains_list", $this->default_domains_list);
 
 		$enable_globally = $this->host->get($this, "enable_globally");
-
-		if (!$similarity) $similarity = $this->default_similarity;
-		if (!$domains_list) $domains_list = $this->default_domains_list;
 
 		$enable_globally_checked = $enable_globally ? "checked" : "";
 
@@ -198,13 +195,14 @@ class Af_Zz_Img_Phash extends Plugin {
 
 		$a = $doc->createElement("a");
 		$a->setAttribute("href", $src);
+		$a->setAttribute("target", "_blank");
 		$a->appendChild(new DOMText(truncate_middle($src, 48, "...")));
 
 		$b = $doc->createElement("a");
 		$b->setAttribute("href", "#");
 		$b->setAttribute("onclick", "showPhashSimilar(this)");
 		$b->setAttribute("data-check-url", $src);
-		$b->appendChild(new DOMText("(phash)"));
+		$b->appendChild(new DOMText("(similar)"));
 
 		$p->appendChild($a);
 		$p->appendChild(new DOMText(" "));
@@ -352,16 +350,13 @@ class Af_Zz_Img_Phash extends Plugin {
 
 		$doc = new DOMDocument();
 
-		$domains_list = $this->host->get($this, "domains_list");
-
-		if (!$domains_list) $domains_list = $this->default_domains_list;
+		$domains_list = $this->host->get($this, "domains_list", $this->default_domains_list);
 
 		$domains_list = explode(" ", $domains_list);
 
 		$need_saving = false;
 
-		$similarity = (int) $this->host->get($this, "similarity");
-		if (!$similarity) $similarity = $this->default_similarity;
+		$similarity = (int) $this->host->get($this, "similarity", $this->default_similarity);
 
 		$article_guid = db_escape_string($article["guid"]);
 
@@ -462,21 +457,40 @@ class Af_Zz_Img_Phash extends Plugin {
 
 		$owner_uid = $_SESSION["uid"];
 
+		$similarity = (int) $this->host->get($this, "similarity", $this->default_similarity);
+
 		print "<img style='float : right; max-width : 64px; max-height : 64px; height : auto; width : auto;' src=\"$url_htmlescaped\">";
 
-		print "<h2><a target=\"_blank\" href=\"$url_htmlescaped\">$url</a></h2>";
+		print "<h2><a target=\"_blank\" href=\"$url_htmlescaped\">".truncate_middle($url, 48)."</a></h2>";
 
-		$result = db_query("SELECT phash FROM ttrss_plugin_img_phash_urls WHERE
+		$result = db_query("SELECT phash,article_guid FROM ttrss_plugin_img_phash_urls WHERE
 			owner_uid = $owner_uid AND
 			url = '$url' LIMIT 1");
 
 		if (db_num_rows($result) != 0) {
 			$phash = db_escape_string(db_fetch_result($result, 0, "phash"));
+			$article_guid = db_escape_string(db_fetch_result($result, 0, "article_guid"));
 
-			print "<p>Perceptual hash: " . sprintf("%x", $phash) . "</p>";
+			$result = db_query("SELECT feed_id, title FROM ttrss_entries, ttrss_user_entries WHERE ref_id = id AND 
+				guid = '$article_guid' AND
+				owner_uid = $owner_uid");
+
+			if (db_num_rows($result) != 0) {
+				$article_title = db_fetch_result($result, 0, "title");
+				$feed_id = db_fetch_result($result, 0, "feed_id");
+
+				$article_title .= " in <a href='#' onclick='viewfeed({feed: $feed_id})'>" . getFeedTitle($feed_id) . "</a>";
+
+			} else {
+				$article_title = "N/A ($article_guid)";
+			}
+
+			print "<p>Perceptual hash: " . sprintf("%x", $phash) . "<br/>";
+			print "Registered to: " . $article_title . "</p>";
 
 			$result = db_query("SELECT url, ttrss_plugin_img_phash_bitcount($phash # phash) AS distance
 				FROM ttrss_plugin_img_phash_urls WHERE
+				ttrss_plugin_img_phash_bitcount($phash # phash) <= $similarity AND
 				url != '$url' ORDER BY distance LIMIT 30");
 
 			print "<ul class=\"browseFeedList\" style=\"border-width : 1px\">";
@@ -486,7 +500,8 @@ class Af_Zz_Img_Phash extends Plugin {
 				$url = htmlspecialchars($line["url"]);
 				$distance = $line["distance"];
 
-				print "<a target=\"_blank\" href=\"$url\">$url</a> ($distance)";
+				print "<a target=\"_blank\" href=\"$url\">".truncate_middle($url, 48)."</a> ($distance)";
+				print "<br/><img style='max-width : 64px; max-height : 64px; height : auto; width : auto;' src=\"$url\">";
 
 				print "</li>";
 			}
