@@ -416,7 +416,7 @@ class Af_Zz_Img_Phash extends Plugin {
 
 						$result = db_query("SELECT COUNT(*) AS csim FROM ttrss_plugin_img_phash_urls WHERE
 							owner_uid = $owner_uid AND
-							created_at >= NOW() - INTERVAL '30 days' AND
+							created_at >= ".$this->interval_days(30)." AND
 							url != '$src_escaped' AND
 							article_guid != '$article_guid' AND
 							".$this->bitcount_func."($phash, phash) <= $similarity");
@@ -448,7 +448,7 @@ class Af_Zz_Img_Phash extends Plugin {
 			}
 		}
 
-		db_query("DELETE FROM ttrss_plugin_img_phash_urls WHERE created_at < NOW() - INTERVAL '180 days'");
+		db_query("DELETE FROM ttrss_plugin_img_phash_urls WHERE created_at < ".$this->interval_days(180));
 	}
 
 	private function check_src_domain($src, $domains_list) {
@@ -546,6 +546,14 @@ class Af_Zz_Img_Phash extends Plugin {
 			$src = "https:" . $src;
 
 		return $src;
+	}
+
+	private function interval_days($days) {
+		if (DB_TYPE == "pgsql") {
+			return "NOW() - INTERVAL '$days days' ";
+		} else {
+			return "DATE_SUB(NOW(), INTERVAL $days DAY) ";
+		}
 	}
 }
 ?>
