@@ -10,7 +10,7 @@ class Af_Zz_Img_Phash extends Plugin {
 
 	private $host;
 	private $default_domains_list = "imgur.com i.reddituploads.com i.redd.it";
-	private $default_similarity = 5;
+	private $default_similarity = 4;
 	private $cache_dir;
 
 	function about() {
@@ -387,8 +387,8 @@ class Af_Zz_Img_Phash extends Plugin {
 					// check for URL duplicates first
 
 					$result = db_query("SELECT id FROM ttrss_plugin_img_phash_urls WHERE
-							owner_uid = $owner_uid AND 
-							url = '$src_escaped' AND 
+							owner_uid = $owner_uid AND
+							url = '$src_escaped' AND
 							article_guid != '$article_guid' LIMIT 1");
 
 					if (db_num_rows($result) > 0) {
@@ -402,7 +402,7 @@ class Af_Zz_Img_Phash extends Plugin {
 					// check using perceptual hash duplicates
 
 					$result = db_query("SELECT phash FROM ttrss_plugin_img_phash_urls WHERE
-						owner_uid = $owner_uid AND 
+						owner_uid = $owner_uid AND
 						url = '$src_escaped' LIMIT 1");
 
 					if (db_num_rows($result) > 0) {
@@ -411,9 +411,9 @@ class Af_Zz_Img_Phash extends Plugin {
 						//$similarity = 15;
 
 						$result = db_query("SELECT COUNT(*) AS csim FROM ttrss_plugin_img_phash_urls WHERE
-							owner_uid = $owner_uid AND 
-							url != '$src_escaped' AND 
-							article_guid != '$article_guid' AND 
+							owner_uid = $owner_uid AND
+							url != '$src_escaped' AND
+							article_guid != '$article_guid' AND
 							ttrss_plugin_img_phash_bitcount($phash # phash) <= $similarity");
 
 						$csim = db_fetch_result($result, 0, "csim");
@@ -467,7 +467,7 @@ class Af_Zz_Img_Phash extends Plugin {
 		print "<h2><a target=\"_blank\" href=\"$url_htmlescaped\">$url</a></h2>";
 
 		$result = db_query("SELECT phash FROM ttrss_plugin_img_phash_urls WHERE
-			owner_uid = $owner_uid AND 
+			owner_uid = $owner_uid AND
 			url = '$url' LIMIT 1");
 
 		if (db_num_rows($result) != 0) {
@@ -475,7 +475,7 @@ class Af_Zz_Img_Phash extends Plugin {
 
 			print "<p>Perceptual hash: " . sprintf("%x", $phash) . "</p>";
 
-			$result = db_query("SELECT url, ttrss_plugin_img_phash_bitcount($phash # phash) AS distance 
+			$result = db_query("SELECT url, ttrss_plugin_img_phash_bitcount($phash # phash) AS distance
 				FROM ttrss_plugin_img_phash_urls WHERE
 				url != '$url' ORDER BY distance LIMIT 30");
 
