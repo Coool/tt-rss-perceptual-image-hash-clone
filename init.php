@@ -500,14 +500,20 @@ class Af_Zz_Img_Phash extends Plugin {
 
 		print "<h2><a target=\"_blank\" href=\"$url_htmlescaped\">".truncate_middle($url_htmlescaped, 48)."</a></h2>";
 
-		$result = db_query("SELECT phash,article_guid FROM ttrss_plugin_img_phash_urls WHERE
+		$result = db_query("SELECT phash FROM ttrss_plugin_img_phash_urls WHERE
 			owner_uid = $owner_uid AND
 			url = '$url' LIMIT 1");
 
 		if (db_num_rows($result) != 0) {
 
 			$phash = db_escape_string(db_fetch_result($result, 0, "phash"));
-			$article_guid = db_escape_string(db_fetch_result($result, 0, "article_guid"));
+
+			$result = db_query("SELECT article_guid FROM ttrss_plugin_img_phash_urls WHERE
+							owner_uid = $owner_uid AND
+							created_at >= ".$this->interval_days(30)." AND
+							".$this->bitcount_func($phash)." <= $similarity ORDER BY created_at LIMIT 1");
+
+			$article_guid = db_fetch_result($result, 0, "article_guid");
 
 			$article_title = $this->guid_to_article_title($article_guid, $owner_uid);
 
@@ -525,12 +531,15 @@ class Af_Zz_Img_Phash extends Plugin {
 				print "<li>";
 				$url = htmlspecialchars($line["url"]);
 				$distance = $line["distance"];
-				$article_guid = db_escape_string($line["article_guid"]);
-				$article_title = $this->guid_to_article_title($article_guid, $owner_uid);
+				$rel_article_guid = db_escape_string($line["article_guid"]);
+				$article_title = $this->guid_to_article_title($rel_article_guid, $owner_uid);
 
-				print "<a target=\"_blank\" href=\"$url\">".truncate_middle($url, 48)."</a> ($distance)";
+				$ref_image = ($rel_article_guid == $article_guid) ? "score_high.png" : "score_neutral.png";
+
+				print "<img src='images/$ref_image' style='vertical-align : top'> ";
+				print "<div style='display : inline-block'><a target=\"_blank\" href=\"$url\">".truncate_middle($url, 48)."</a> ($distance)";
 				print "<br/>$article_title";
-				print "<br/><img style='max-width : 64px; max-height : 64px; height : auto; width : auto;' src=\"$url\">";
+				print "<br/><img style='max-width : 64px; max-height : 64px; height : auto; width : auto;' src=\"$url\"></div>";
 
 				print "</li>";
 			}
