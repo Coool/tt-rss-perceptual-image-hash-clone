@@ -221,8 +221,6 @@ class Af_Zz_Img_Phash extends Plugin {
 
 	function hook_article_filter($article) {
 
-		if (DB_TYPE != "pgsql") return $article;
-
 		$enable_globally = $this->host->get($this, "enable_globally");
 		$domains_list = $this->host->get($this, "domains_list");
 
@@ -303,10 +301,10 @@ class Af_Zz_Img_Phash extends Plugin {
 							_debug("phash: calculated perceptual hash: $hash");
 
 							if ($hash) {
-								$hash_escaped = db_escape_string($hash);
+								$hash_escaped = db_escape_string(base_convert($hash, 16, 10));
 
 								db_query("INSERT INTO ttrss_plugin_img_phash_urls (url, article_guid, owner_uid, phash) VALUES
-									('$src_escaped', '$article_guid', $owner_uid, x'$hash_escaped'::bigint)");
+									('$src_escaped', '$article_guid', $owner_uid, '$hash_escaped')");
 							}
 
 						} else {
