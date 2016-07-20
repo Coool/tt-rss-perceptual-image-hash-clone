@@ -451,6 +451,31 @@ class Af_Zz_Img_Phash extends Plugin {
 		return false;
 	}
 
+	private function guid_to_article_title($article_guid, $owner_uid) {
+		$result = db_query("SELECT feed_id, title, updated 
+			FROM ttrss_entries, ttrss_user_entries 
+			WHERE ref_id = id AND 
+				guid = '$article_guid' AND
+				owner_uid = $owner_uid");
+
+		if (db_num_rows($result) != 0) {
+			$article_title = db_fetch_result($result, 0, "title");
+			$feed_id = db_fetch_result($result, 0, "feed_id");
+			$updated = db_fetch_result($result, 0, "updated");
+
+			$article_title = "<span title='$article_guid'>$article_title</span>";
+
+			$article_title .= " in <a href='#' onclick='viewfeed({feed: $feed_id})'>" . getFeedTitle($feed_id) . "</a>";
+
+			$article_title .= " (" . make_local_datetime($updated, true) . ")";
+
+		} else {
+			$article_title = "N/A ($article_guid)";
+		}
+
+		return $article_title;
+	}
+
 	function showsimilar() {
 		$url = db_escape_string($_REQUEST["param"]);
 		$url_htmlescaped = htmlspecialchars($url);
@@ -471,24 +496,12 @@ class Af_Zz_Img_Phash extends Plugin {
 			$phash = db_escape_string(db_fetch_result($result, 0, "phash"));
 			$article_guid = db_escape_string(db_fetch_result($result, 0, "article_guid"));
 
-			$result = db_query("SELECT feed_id, title FROM ttrss_entries, ttrss_user_entries WHERE ref_id = id AND 
-				guid = '$article_guid' AND
-				owner_uid = $owner_uid");
-
-			if (db_num_rows($result) != 0) {
-				$article_title = db_fetch_result($result, 0, "title");
-				$feed_id = db_fetch_result($result, 0, "feed_id");
-
-				$article_title .= " in <a href='#' onclick='viewfeed({feed: $feed_id})'>" . getFeedTitle($feed_id) . "</a>";
-
-			} else {
-				$article_title = "N/A ($article_guid)";
-			}
+			$article_title = $this->guid_to_article_title($article_guid, $owner_uid);
 
 			print "<p>Perceptual hash: " . base_convert($phash, 10, 16) . "<br/>";
 			print "Registered to: " . $article_title . "</p>";
 
-			$result = db_query("SELECT url, ttrss_plugin_img_phash_bitcount($phash # phash) AS distance
+			$result = db_query("SELECT url, article_guid, ttrss_plugin_img_phash_bitcount($phash # phash) AS distance
 				FROM ttrss_plugin_img_phash_urls WHERE
 				ttrss_plugin_img_phash_bitcount($phash # phash) <= $similarity AND
 				url != '$url' ORDER BY distance LIMIT 30");
@@ -499,8 +512,11 @@ class Af_Zz_Img_Phash extends Plugin {
 				print "<li>";
 				$url = htmlspecialchars($line["url"]);
 				$distance = $line["distance"];
+				$article_guid = db_escape_string($line["article_guid"]);
+				$article_title = $this->guid_to_article_title($article_guid, $owner_uid);
 
 				print "<a target=\"_blank\" href=\"$url\">".truncate_middle($url, 48)."</a> ($distance)";
+				print "<br/>$article_title";
 				print "<br/><img style='max-width : 64px; max-height : 64px; height : auto; width : auto;' src=\"$url\">";
 
 				print "</li>";
