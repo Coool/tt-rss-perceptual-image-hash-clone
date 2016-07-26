@@ -192,30 +192,45 @@ class Af_Zz_Img_Phash extends Plugin {
 		$this->host->set($this, "enabled_feeds", $enabled_feeds);
 	}
 
-	private function rewrite_duplicate($doc, $img, $api_mode = false) {
-		$src = $this->absolutize_url($img->getAttribute("src"));
+	private function rewrite_duplicate($doc, $elem, $api_mode = false) {
 
-		$p = $doc->createElement('p');
+		if ($elem->hasAttribute("src")) {
+			$uri = $this->absolutize_url($elem->getAttribute("src"));
+			$check_uri = $uri;
+		} else if ($elem->hasAttribute("poster")) {
+			$check_uri = $this->absolutize_url($elem->getAttribute("poster"));
 
-		$a = $doc->createElement("a");
-		$a->setAttribute("href", $src);
-		$a->setAttribute("target", "_blank");
-		$a->appendChild(new DOMText(truncate_middle($src, 48, "...")));
+			$video_source = $elem->getElementsByTagName("source")->item(0);
 
-		$p->appendChild($a);
-
-		if (!$api_mode) {
-			$b = $doc->createElement("a");
-			$b->setAttribute("href", "#");
-			$b->setAttribute("onclick", "showPhashSimilar(this)");
-			$b->setAttribute("data-check-url", $this->absolutize_url($src));
-			$b->appendChild(new DOMText("(similar)"));
-
-			$p->appendChild(new DOMText(" "));
-			$p->appendChild($b);
+			if ($video_source) {
+				$uri = $video_source->getAttribute("src");
+			}
 		}
 
-		$img->parentNode->replaceChild($p, $img);
+		if ($check_uri && $uri) {
+
+			$p = $doc->createElement('p');
+
+			$a = $doc->createElement("a");
+			$a->setAttribute("href", $uri);
+			$a->setAttribute("target", "_blank");
+			$a->appendChild(new DOMText(truncate_middle($uri, 48, "...")));
+
+			$p->appendChild($a);
+
+			if (!$api_mode) {
+				$b = $doc->createElement("a");
+				$b->setAttribute("href", "#");
+				$b->setAttribute("onclick", "showPhashSimilar(this)");
+				$b->setAttribute("data-check-url", $this->absolutize_url($check_uri));
+				$b->appendChild(new DOMText("(similar)"));
+
+				$p->appendChild(new DOMText(" "));
+				$p->appendChild($b);
+			}
+
+			$elem->parentNode->replaceChild($p, $elem);
+		}
 	}
 
 	function hook_article_filter($article) {
@@ -242,11 +257,11 @@ class Af_Zz_Img_Phash extends Plugin {
 		if (@$doc->loadHTML($article["content"])) {
 			$xpath = new DOMXPath($doc);
 
-			$imgs = $xpath->query("//img[@src]");
+			$imgs = $xpath->query("//img[@src]|//video[@poster]");
 
 			foreach ($imgs as $img) {
 
-				$src = $img->getAttribute("src");
+				$src = $img->tagName == "video" ? $img->getAttribute("poster") : $img->getAttribute("src");
 				$src = $this->absolutize_url(rewrite_relative_url($article["link"], $src));
 
 				$domain_found = $this->check_src_domain($src, $domains_list);
@@ -375,11 +390,11 @@ class Af_Zz_Img_Phash extends Plugin {
 		if (@$doc->loadHTML($article["content"])) {
 			$xpath = new DOMXPath($doc);
 
-			$imgs = $xpath->query("//img[@src]");
+			$imgs = $xpath->query("//img[@src]|//video[@poster]");
 
 			foreach ($imgs as $img) {
 
-				$src = $img->getAttribute("src");
+				$src = $img->tagName == "video" ? $img->getAttribute("poster") : $img->getAttribute("src");
 				$src = $this->absolutize_url(rewrite_relative_url($article["link"], $src, $api_mode));
 
 				$domain_found = $this->check_src_domain($src, $domains_list);
