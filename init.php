@@ -112,9 +112,8 @@ class Af_Zz_Img_Phash extends Plugin {
 
 		print "<tr><td width=\"40%\">".__("Limit to domains (space-separated):")."</td>";
 		print "<td>
-			<input dojoType=\"dijit.form.ValidationTextBox\"
-			placeholder=\"imgur.com\"
-			required=\"1\" name=\"domains_list\" value=\"$domains_list\"></td></tr>";
+			<textarea dojoType=\"dijit.form.SimpleTextarea\" style=\"height: 100px;\"
+			required=\"1\" name=\"domains_list\">$domains_list</textarea></td></tr>";
 		print "<tr><td width=\"40%\">".__("Maximum hamming distance:")."</td>";
 		print "<td>
 			<input dojoType=\"dijit.form.ValidationTextBox\"
