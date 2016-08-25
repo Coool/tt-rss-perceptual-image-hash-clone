@@ -307,7 +307,7 @@ class Af_Zz_Img_Phash extends Plugin {
 						$implementation = new PerceptualHash();
 						$hasher = new ImageHash($implementation);
 
-						$data_resource = imagecreatefromstring($data);
+						$data_resource = @imagecreatefromstring($data);
 
 						if ($data_resource) {
 							$hash = $hasher->hash($data_resource);
