@@ -455,7 +455,7 @@ class Af_Zz_Img_Phash extends Plugin {
 
 
 	function hook_house_keeping() {
-		$files = glob($this->cache_dir . "/*.png", GLOB_BRACE);
+		$files = glob($this->cache_dir . "/*.png", GLOB_NOSORT);
 
 		foreach ($files as $file) {
 			if (filemtime($file) < time() - 86400 * $this->cache_max_age) {
