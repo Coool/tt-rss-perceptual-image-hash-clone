@@ -101,9 +101,9 @@ class Af_Zz_Img_Phash extends Plugin {
 			}
 			</script>";
 
-		print "<input dojoType=\"dijit.form.TextBox\" style=\"display : none\" name=\"op\" value=\"pluginhandler\">";
-		print "<input dojoType=\"dijit.form.TextBox\" style=\"display : none\" name=\"method\" value=\"save\">";
-		print "<input dojoType=\"dijit.form.TextBox\" style=\"display : none\" name=\"plugin\" value=\"af_zz_img_phash\">";
+		print_hidden("op", "pluginhandler");
+		print_hidden("method", "save");
+		print_hidden("plugin", "af_zz_img_phash");
 
 		print "<p>" . format_notice("Lower hamming distance value indicates images being more similar.");
 
