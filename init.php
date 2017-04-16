@@ -80,10 +80,7 @@ class Af_Zz_Img_Phash extends Plugin {
 
 		$similarity = (int) $this->host->get($this, "similarity", $this->default_similarity);
 		$domains_list = $this->host->get($this, "domains_list", $this->default_domains_list);
-
 		$enable_globally = $this->host->get($this, "enable_globally");
-
-		$enable_globally_checked = $enable_globally ? "checked" : "";
 
 		print "<form dojoType=\"dijit.form.Form\">";
 
@@ -101,9 +98,9 @@ class Af_Zz_Img_Phash extends Plugin {
 			}
 			</script>";
 
-		print "<input dojoType=\"dijit.form.TextBox\" style=\"display : none\" name=\"op\" value=\"pluginhandler\">";
-		print "<input dojoType=\"dijit.form.TextBox\" style=\"display : none\" name=\"method\" value=\"save\">";
-		print "<input dojoType=\"dijit.form.TextBox\" style=\"display : none\" name=\"plugin\" value=\"af_zz_img_phash\">";
+		print_hidden("op", "pluginhandler");
+		print_hidden("method", "save");
+		print_hidden("plugin", "af_zz_img_phash");
 
 		print "<p>" . format_notice("Lower hamming distance value indicates images being more similar.");
 
@@ -121,14 +118,13 @@ class Af_Zz_Img_Phash extends Plugin {
 			placeholder=\"5\"
 			required=\"1\" name=\"similarity\" value=\"$similarity\"></td></tr>";
 		print "<tr><td width=\"40%\">".__("Enable for all feeds:")."</td>";
-		print "<td>
-			<input dojoType=\"dijit.form.CheckBox\"
-			$enable_globally_checked name=\"enable_globally\"></td></tr>";
+		print "<td>";
+		print_checkbox("enable_globally", $enable_globally);
+		print "</td></tr>";
 
 		print "</table>";
 
-		print "<p><button dojoType=\"dijit.form.Button\" type=\"submit\">".
-			__("Save")."</button>";
+		print "<p>"; print_button("submit", __("Save"));
 
 		print "</form>";
 
