@@ -311,7 +311,18 @@ class Af_Zz_Img_Phash extends Plugin {
 							_debug("phash: calculated perceptual hash: $hash");
 
 							if ($hash) {
-								$hash_escaped = db_escape_string(base_convert($hash, 16, 10));
+								$hash = base_convert($hash, 16, 10);
+
+								if (PHP_INT_SIZE > 4) {
+									while ($hash > PHP_INT_MAX) {
+										$bitstring = base_convert($hash, 10, 2);
+										$bitstring = substr($bitstring, 1);
+
+										$hash = base_convert($bitstring, 2, 10);
+									}
+								}
+
+								$hash_escaped = db_escape_string($hash);
 
 								db_query("INSERT INTO ttrss_plugin_img_phash_urls (url, article_guid, owner_uid, phash) VALUES
 									('$src_escaped', '$article_guid', $owner_uid, '$hash_escaped')");
