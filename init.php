@@ -9,8 +9,8 @@ use Jenssegers\ImageHash\ImageHash;
 class Af_Zz_Img_Phash extends Plugin {
 
 	private $host;
-	private $default_domains_list = "imgur.com i.reddituploads.com pbs.twimg.com i.redd.it i.sli.mg media.tumblr.com";
-	private $default_similarity = 2;
+	private $default_domains_list = "imgur.com i.reddituploads.com pbs.twimg.com i.redd.it i.sli.mg media.tumblr.com i.redditmedia.com kek.gg";
+	private $default_similarity = 5;
 	private $cache_max_age = 7;
 	private $cache_dir;
 
@@ -28,7 +28,7 @@ class Af_Zz_Img_Phash extends Plugin {
 		$similarity = (int) $_POST["similarity"];
 		$domains_list = $_POST["domains_list"];
 
-		$enable_globally = checkbox_to_sql_bool($_POST["enable_globally"]) == "true";
+		$enable_globally = checkbox_to_sql_bool($_POST["phash_enable_globally"]) == "true";
 
 		if ($similarity < 0) $similarity = 0;
 
@@ -119,7 +119,7 @@ class Af_Zz_Img_Phash extends Plugin {
 			required=\"1\" name=\"similarity\" value=\"$similarity\"></td></tr>";
 		print "<tr><td width=\"40%\">".__("Enable for all feeds:")."</td>";
 		print "<td>";
-		print_checkbox("enable_globally", $enable_globally);
+		print_checkbox("phash_enable_globally", $enable_globally);
 		print "</td></tr>";
 
 		print "</table>";
