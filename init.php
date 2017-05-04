@@ -499,7 +499,7 @@ class Af_Zz_Img_Phash extends Plugin {
 
 			$article_title = "<span title='$article_guid'>$article_title</span>";
 
-			$article_title .= " in <a href='#' onclick='viewfeed({feed: $feed_id})'>" . getFeedTitle($feed_id) . "</a>";
+			$article_title .= " in <a href='#' onclick='viewfeed({feed: $feed_id})'>" . Feeds::getFeedTitle($feed_id) . "</a>";
 
 			$article_title .= " (" . make_local_datetime($updated, true) . ")";
 
