@@ -547,26 +547,35 @@ class Af_Zz_Img_Phash extends Plugin {
 				".$this->bitcount_func($phash)." <= $similarity
 				ORDER BY distance LIMIT 30");
 
-			print "<ul class=\"browseFeedList\" style=\"border-width : 1px\">";
+			print "<div class=\"filterTestHolder\" style=\"border-width : 1px\"><table>";
 
 			while ($line = db_fetch_assoc($result)) {
-				print "<li>";
+				print "<tr>";
+
 				$url = htmlspecialchars($line["url"]);
 				$distance = $line["distance"];
 				$rel_article_guid = db_escape_string($line["article_guid"]);
 				$article_title = $this->guid_to_article_title($rel_article_guid, $owner_uid);
 
-				$ref_image = ($rel_article_guid == $article_guid) ? "score_high.png" : "score_neutral.png";
+				$is_checked = ($rel_article_guid == $article_guid) ? "checked" : "";
 
-				print "<img src='images/$ref_image' style='vertical-align : top'> ";
-				print "<div style='display : inline-block'><a target=\"_blank\" href=\"$url\">".truncate_middle($url, 48)."</a> ($distance)";
+				print "<td style='vertical-align : top'>";
+				print_checkbox("", $is_checked, "", "disabled");
+				print "</td>";
+
+				print "<td>";
+				print "<div style='display : inline-block'><a target=\"_blank\" href=\"$url\">".truncate_middle($url, 48)."</a> (Distance: $distance)";
+
+				if ($is_checked) print " (Original)";
+
 				print "<br/>$article_title";
 				print "<br/><img style='max-width : 64px; max-height : 64px; height : auto; width : auto;' src=\"$url\"></div>";
+				print "</td>";
 
-				print "</li>";
+				print "</tr>";
 			}
 
-			print "</ul>";
+			print "</table></div>";
 		}
 
 
