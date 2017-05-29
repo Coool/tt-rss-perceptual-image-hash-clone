@@ -11,8 +11,9 @@ class Af_Zz_Img_Phash extends Plugin {
 	private $host;
 	private $default_domains_list = "imgur.com i.reddituploads.com pbs.twimg.com i.redd.it i.sli.mg media.tumblr.com i.redditmedia.com kek.gg";
 	private $default_similarity = 5;
-	private $cache_max_age = 7;
+	private $cache_max_age = CACHE_MAX_DAYS;
 	private $cache_dir;
+	private $data_max_age = 180; // days
 
 	function about() {
 		return array(1.0,
@@ -284,7 +285,7 @@ class Af_Zz_Img_Phash extends Plugin {
 						if (!file_exists($cached_file) || filesize($cached_file) == 0) {
 							$data = fetch_file_contents(array("url" => $src));
 
-							if ($data) {
+							if ($data && strlen($data) > MIN_CACHE_FILE_SIZE) {
 								file_put_contents($cached_file, $data);
 							}
 						} else {
@@ -470,7 +471,7 @@ class Af_Zz_Img_Phash extends Plugin {
 			}
 		}
 
-		db_query("DELETE FROM ttrss_plugin_img_phash_urls WHERE created_at < ".$this->interval_days(180));
+		db_query("DELETE FROM ttrss_plugin_img_phash_urls WHERE created_at < ".$this->interval_days($this->data_max_age));
 	}
 
 	private function check_src_domain($src, $domains_list) {
