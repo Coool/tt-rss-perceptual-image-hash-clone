@@ -8,6 +8,7 @@ use Jenssegers\ImageHash\ImageHash;
 
 class Af_Zz_Img_Phash extends Plugin {
 
+	/* @var PluginHost $host */
 	private $host;
 	private $default_domains_list = "imgur.com i.reddituploads.com pbs.twimg.com i.redd.it i.sli.mg media.tumblr.com i.redditmedia.com kek.gg";
 	private $default_similarity = 5;
@@ -73,8 +74,9 @@ class Af_Zz_Img_Phash extends Plugin {
 		print "<div dojoType=\"dijit.layout.AccordionPane\" title=\"".__('Filter similar images')."\">";
 
 		if (DB_TYPE == "pgsql") {
-			$result = db_query("select 'unique_1bits'::regproc");
-			if (db_num_rows($result) == 0) {
+			$res = $this->pdo->query("select 'unique_1bits'::regproc");
+
+			if (!$res->fetch()) {
 				print_error("Required function from count_bits extension not found.");
 			}
 		}
@@ -246,8 +248,7 @@ class Af_Zz_Img_Phash extends Plugin {
 		}
 
 		$owner_uid = $article["owner_uid"];
-
-		$article_guid = db_escape_string($article["guid_hashed"]);
+		$article_guid = $article["guid_hashed"];
 
 		$doc = new DOMDocument();
 
@@ -267,74 +268,75 @@ class Af_Zz_Img_Phash extends Plugin {
 
 					_debug("phash: checking $src");
 
-					$src_escaped = db_escape_string($src);
+					$sth = $this->pdo->prepare("SELECT id FROM ttrss_plugin_img_phash_urls WHERE
+						owner_uid = ? AND url = ? LIMIT 1");
+					$sth->execute([$owner_uid, $src]);
 
-					$result = db_query("SELECT id FROM ttrss_plugin_img_phash_urls WHERE
-					owner_uid = $owner_uid AND url = '$src_escaped' LIMIT 1");
-
-					if (db_num_rows($result) != 0) {
+					if ($sth->fetch()) {
 						_debug("phash: url already stored, not processing");
 						continue;
-					}
+					} else {
 
-					_debug("phash: downloading and calculating hash...");
+						_debug("phash: downloading and calculating hash...");
 
-					if (is_writable($this->cache_dir)) {
-						$cached_file = $this->cache_dir . "/" . sha1($src) . ".png";
+						if (is_writable($this->cache_dir)) {
+							$cached_file = $this->cache_dir . "/" . sha1($src) . ".png";
 
-						if (!file_exists($cached_file) || filesize($cached_file) == 0) {
-							$data = fetch_file_contents(array("url" => $src));
+							if (!file_exists($cached_file) || filesize($cached_file) == 0) {
+								$data = fetch_file_contents(array("url" => $src));
 
-							if ($data && strlen($data) > MIN_CACHE_FILE_SIZE) {
-								file_put_contents($cached_file, $data);
+								if ($data && strlen($data) > MIN_CACHE_FILE_SIZE) {
+									file_put_contents($cached_file, $data);
+								}
+							} else {
+								_debug("phash: reading from local cache: $cached_file");
+
+								$data = file_get_contents($cached_file);
 							}
 						} else {
-							_debug("phash: reading from local cache: $cached_file");
+							_debug("phash: cache directory is not writable");
 
-							$data = file_get_contents($cached_file);
+							$data = fetch_file_contents(array("url" => $src));
 						}
-					} else {
-						_debug("phash: cache directory is not writable");
 
-						$data = fetch_file_contents(array("url" => $src));
-					}
+						if ($data) {
 
-					if ($data) {
+							$implementation = new PerceptualHash();
+							$hasher = new ImageHash($implementation);
 
-						$implementation = new PerceptualHash();
-						$hasher = new ImageHash($implementation);
+							$data_resource = @imagecreatefromstring($data);
 
-						$data_resource = @imagecreatefromstring($data);
+							if ($data_resource) {
+								$hash = $hasher->hash($data_resource);
 
-						if ($data_resource) {
-							$hash = $hasher->hash($data_resource);
+								_debug("phash: calculated perceptual hash: $hash");
 
-							_debug("phash: calculated perceptual hash: $hash");
+								if ($hash) {
+									$hash = base_convert($hash, 16, 10);
 
-							if ($hash) {
-								$hash = base_convert($hash, 16, 10);
+									if (PHP_INT_SIZE > 4) {
+										while ($hash > PHP_INT_MAX) {
+											$bitstring = base_convert($hash, 10, 2);
+											$bitstring = substr($bitstring, 1);
 
-								if (PHP_INT_SIZE > 4) {
-									while ($hash > PHP_INT_MAX) {
-										$bitstring = base_convert($hash, 10, 2);
-										$bitstring = substr($bitstring, 1);
-
-										$hash = base_convert($bitstring, 2, 10);
+											$hash = base_convert($bitstring, 2, 10);
+										}
 									}
+
+									$sth = $this->pdo->prepare("INSERT INTO 
+										ttrss_plugin_img_phash_urls (url, article_guid, owner_uid, phash) VALUES
+										(?, ?, ?, ?)");
+									$sth->execute([$src, $article_guid, $owner_uid, $hash]);
 								}
 
-								$hash_escaped = db_escape_string($hash);
-
-								db_query("INSERT INTO ttrss_plugin_img_phash_urls (url, article_guid, owner_uid, phash) VALUES
-									('$src_escaped', '$article_guid', $owner_uid, '$hash_escaped')");
+							} else {
+								_debug("phash: unable to load image: $src");
 							}
 
 						} else {
-							_debug("phash: unable to load image: $src");
+							_debug("phash: unable to fetch: $src");
 						}
 
-					} else {
-						_debug("phash: unable to fetch: $src");
 					}
 				}
 			}
@@ -353,9 +355,10 @@ class Af_Zz_Img_Phash extends Plugin {
 
 		foreach ($enabled_feeds as $feed) {
 
-			$result = db_query("SELECT id FROM ttrss_feeds WHERE id = '$feed' AND owner_uid = " . $_SESSION["uid"]);
+			$sth = $this->pdo->prepare("SELECT id FROM ttrss_feeds WHERE id = ? AND owner_uid = ?");
+			$sth->execute([$feed, $_SESSION['uid']]);
 
-			if (db_num_rows($result) != 0) {
+			if ($row = $sth->fetch()) {
 				array_push($tmp, $feed);
 			}
 		}
@@ -377,8 +380,8 @@ class Af_Zz_Img_Phash extends Plugin {
 	function hook_render_article_cdm($article, $api_mode = false) {
 
 		if (DB_TYPE == "pgsql") {
-			$result = db_query("select 'unique_1bits'::regproc");
-			if (db_num_rows($result) == 0) return $article;
+			$res = $this->pdo->query("select 'unique_1bits'::regproc");
+			if (!$res->fetch()) return $article;
 		}
 
 		$owner_uid = $_SESSION["uid"];
@@ -393,7 +396,7 @@ class Af_Zz_Img_Phash extends Plugin {
 
 		$similarity = (int) $this->host->get($this, "similarity", $this->default_similarity);
 
-		$article_guid = db_escape_string($article["guid"]);
+		$article_guid = $article["guid"];
 
 		if (@$doc->loadHTML($article["content"])) {
 			$xpath = new DOMXPath($doc);
@@ -408,16 +411,15 @@ class Af_Zz_Img_Phash extends Plugin {
 				$domain_found = $this->check_src_domain($src, $domains_list);
 
 				if ($domain_found) {
-					$src_escaped = db_escape_string($src);
-
 					// check for URL duplicates first
 
-					$result = db_query("SELECT id FROM ttrss_plugin_img_phash_urls WHERE
-							owner_uid = $owner_uid AND
-							url = '$src_escaped' AND
-							article_guid != '$article_guid' LIMIT 1");
+					$sth = $this->pdo->prepare("SELECT id FROM ttrss_plugin_img_phash_urls WHERE
+							owner_uid = ? AND
+							url = ? AND
+							article_guid != ? LIMIT 1");
+					$sth->execute([$owner_uid, $src, $article_guid]);
 
-					if (db_num_rows($result) > 0) {
+					if ($sth->fetch()) {
 						$need_saving = true;
 
 						$this->rewrite_duplicate($doc, $img, $api_mode);
@@ -427,23 +429,25 @@ class Af_Zz_Img_Phash extends Plugin {
 
 					// check using perceptual hash duplicates
 
-					$result = db_query("SELECT phash FROM ttrss_plugin_img_phash_urls WHERE
-						owner_uid = $owner_uid AND
-						url = '$src_escaped' LIMIT 1");
+					$sth = $this->pdo->prepare("SELECT phash FROM ttrss_plugin_img_phash_urls WHERE
+						owner_uid = ? AND
+						url = ? LIMIT 1");
+					$sth->execute([$owner_uid, $src]);
 
-					if (db_num_rows($result) > 0) {
-						$phash = db_escape_string(db_fetch_result($result, 0, "phash"));
+					if ($row = $sth->fetch()) {
+						$phash = $row['phash'];
 
 						//$similarity = 15;
 
-						$result = db_query("SELECT article_guid FROM ttrss_plugin_img_phash_urls WHERE
-							owner_uid = $owner_uid AND
+						$sth = $this->pdo->prepare("SELECT article_guid FROM ttrss_plugin_img_phash_urls WHERE
+							owner_uid = ? AND
 							created_at >= ".$this->interval_days(30)." AND
-							".$this->bitcount_func($phash)." <= $similarity ORDER BY created_at LIMIT 1");
+							".$this->bitcount_func($phash)." <= ? ORDER BY created_at LIMIT 1");
+						$sth->execute([$owner_uid, $similarity]);
 
-						if (db_num_rows($result) > 0) {
+						if ($row = $sth->fetch()) {
 
-							$test_guid = db_fetch_result($result, 0, "article_guid");
+							$test_guid = $row['article_guid'];
 
 							if ($test_guid != $article_guid) {
 								$need_saving = true;
@@ -471,7 +475,8 @@ class Af_Zz_Img_Phash extends Plugin {
 			}
 		}
 
-		db_query("DELETE FROM ttrss_plugin_img_phash_urls WHERE created_at < ".$this->interval_days($this->data_max_age));
+		$this->pdo->query("DELETE FROM ttrss_plugin_img_phash_urls 
+			WHERE created_at < ".$this->interval_days($this->data_max_age));
 	}
 
 	private function check_src_domain($src, $domains_list) {
@@ -487,16 +492,17 @@ class Af_Zz_Img_Phash extends Plugin {
 	}
 
 	private function guid_to_article_title($article_guid, $owner_uid) {
-		$result = db_query("SELECT feed_id, title, updated 
+		$sth = $this->pdo->prepare("SELECT feed_id, title, updated 
 			FROM ttrss_entries, ttrss_user_entries 
 			WHERE ref_id = id AND 
-				guid = '$article_guid' AND
-				owner_uid = $owner_uid");
+				guid = ? AND
+				owner_uid = ?");
+		$sth->execute([$article_guid, $owner_uid]);
 
-		if (db_num_rows($result) != 0) {
-			$article_title = db_fetch_result($result, 0, "title");
-			$feed_id = db_fetch_result($result, 0, "feed_id");
-			$updated = db_fetch_result($result, 0, "updated");
+		if ($row = $sth->fetch()) {
+			$article_title = $row["title"];
+			$feed_id = $row["feed_id"];
+			$updated = $row["updated"];
 
 			$article_title = "<span title='$article_guid'>$article_title</span>";
 
@@ -512,7 +518,7 @@ class Af_Zz_Img_Phash extends Plugin {
 	}
 
 	function showsimilar() {
-		$url = db_escape_string($_REQUEST["param"]);
+		$url = $_REQUEST["param"];
 		$url_htmlescaped = htmlspecialchars($url);
 
 		$owner_uid = $_SESSION["uid"];
@@ -523,60 +529,66 @@ class Af_Zz_Img_Phash extends Plugin {
 
 		print "<h2><a target=\"_blank\" href=\"$url_htmlescaped\">".truncate_middle($url_htmlescaped, 48)."</a></h2>";
 
-		$result = db_query("SELECT phash FROM ttrss_plugin_img_phash_urls WHERE
-			owner_uid = $owner_uid AND
-			url = '$url' LIMIT 1");
+		$sth = $this->pdo->prepare("SELECT phash FROM ttrss_plugin_img_phash_urls WHERE
+			owner_uid = ?AND
+			url = ? LIMIT 1");
+		$sth->execute([$owner_uid, $url]);
 
-		if (db_num_rows($result) != 0) {
+		if ($row = $sth->fetch()) {
 
-			$phash = db_escape_string(db_fetch_result($result, 0, "phash"));
+			$phash = $row['phash'];
 
-			$result = db_query("SELECT article_guid FROM ttrss_plugin_img_phash_urls WHERE
-							owner_uid = $owner_uid AND
+			$sth = $this->pdo->prepare("SELECT article_guid FROM ttrss_plugin_img_phash_urls WHERE
+							owner_uid = ? AND
 							created_at >= ".$this->interval_days(30)." AND
-							".$this->bitcount_func($phash)." <= $similarity ORDER BY created_at LIMIT 1");
+							".$this->bitcount_func($phash)." <= ? ORDER BY created_at LIMIT 1");
+			$sth->execute([$owner_uid, $similarity]);
 
-			$article_guid = db_fetch_result($result, 0, "article_guid");
+			if ($row = $sth->fetch()) {
 
-			$article_title = $this->guid_to_article_title($article_guid, $owner_uid);
+				$article_guid = $row['article_guid'];
+				$article_title = $this->guid_to_article_title($article_guid, $owner_uid);
 
-			print "<p>Perceptual hash: " . base_convert($phash, 10, 16) . "<br/>";
-			print "Registered to: " . $article_title . "</p>";
+				print "<p>Perceptual hash: " . base_convert($phash, 10, 16) . "<br/>";
+				print "Registered to: " . $article_title . "</p>";
 
-			$result = db_query("SELECT url, article_guid, ".$this->bitcount_func($phash)." AS distance
-				FROM ttrss_plugin_img_phash_urls WHERE				
-				".$this->bitcount_func($phash)." <= $similarity
-				ORDER BY distance LIMIT 30");
+				$sth = $this->pdo->prepare("SELECT url, article_guid, ".$this->bitcount_func($phash)." AS distance
+					FROM ttrss_plugin_img_phash_urls WHERE				
+					".$this->bitcount_func($phash)." <= ?
+					ORDER BY distance LIMIT 30");
+				$sth->execute([$similarity]);
 
-			print "<div class=\"filterTestHolder\" style=\"border-width : 1px\"><table>";
+				print "<div class=\"filterTestHolder\" style=\"border-width : 1px\"><table>";
 
-			while ($line = db_fetch_assoc($result)) {
-				print "<tr>";
+				while ($line = $sth->fetch()) {
+					print "<tr>";
 
-				$url = htmlspecialchars($line["url"]);
-				$distance = $line["distance"];
-				$rel_article_guid = db_escape_string($line["article_guid"]);
-				$article_title = $this->guid_to_article_title($rel_article_guid, $owner_uid);
+					$url = htmlspecialchars($line["url"]);
+					$distance = $line["distance"];
+					$rel_article_guid = $line["article_guid"];
+					$article_title = $this->guid_to_article_title($rel_article_guid, $owner_uid);
 
-				$is_checked = ($rel_article_guid == $article_guid) ? "checked" : "";
+					$is_checked = ($rel_article_guid == $article_guid) ? "checked" : "";
 
-				print "<td style='vertical-align : top'>";
-				print_checkbox("", $is_checked, "", "disabled");
-				print "</td>";
+					print "<td style='vertical-align : top'>";
+					print_checkbox("", $is_checked, "", "disabled");
+					print "</td>";
 
-				print "<td>";
-				print "<div style='display : inline-block'><a target=\"_blank\" href=\"$url\">".truncate_middle($url, 48)."</a> (Distance: $distance)";
+					print "<td>";
+					print "<div style='display : inline-block'><a target=\"_blank\" href=\"$url\">".truncate_middle($url, 48)."</a> (Distance: $distance)";
 
-				if ($is_checked) print " (Original)";
+					if ($is_checked) print " (Original)";
 
-				print "<br/>$article_title";
-				print "<br/><img style='max-width : 64px; max-height : 64px; height : auto; width : auto;' src=\"$url\"></div>";
-				print "</td>";
+					print "<br/>$article_title";
+					print "<br/><img style='max-width : 64px; max-height : 64px; height : auto; width : auto;' src=\"$url\"></div>";
+					print "</td>";
 
-				print "</tr>";
+					print "</tr>";
+				}
+
+				print "</table></div>";
+
 			}
-
-			print "</table></div>";
 		}
 
 
