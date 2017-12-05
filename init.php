@@ -175,7 +175,7 @@ class Af_Zz_Img_Phash extends Plugin {
 		$enabled_feeds = $this->host->get($this, "enabled_feeds");
 		if (!is_array($enabled_feeds)) $enabled_feeds = array();
 
-		$enable = checkbox_to_sql_bool($_POST["phash_similarity_enabled"]) == 'true';
+		$enable = checkbox_to_sql_bool($_POST["phash_similarity_enabled"]);
 		$key = array_search($feed_id, $enabled_feeds);
 
 		if ($enable) {
