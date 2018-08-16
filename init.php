@@ -14,6 +14,7 @@ class Af_Zz_Img_Phash extends Plugin {
 	private $default_similarity = 5;
 	private $cache_max_age = CACHE_MAX_DAYS;
 	private $cache_dir;
+	private $cache_dir_pvt;
 	private $data_max_age = 180; // days
 
 	function about() {
@@ -44,7 +45,9 @@ class Af_Zz_Img_Phash extends Plugin {
 	function init($host) {
 		$this->host = $host;
 
-		$this->cache_dir = CACHE_DIR . "/af_zz_img_phash/";
+		// pvt is the old separate cache directory, only needed to expire old files
+		$this->cache_dir_pvt = CACHE_DIR . "/af_zz_img_phash/";
+		$this->cache_dir = CACHE_DIR . "/images/";
 
 		if (!is_dir($this->cache_dir)) {
 			mkdir($this->cache_dir);
@@ -280,7 +283,7 @@ class Af_Zz_Img_Phash extends Plugin {
 						_debug("phash: downloading and calculating hash...");
 
 						if (is_writable($this->cache_dir)) {
-							$cached_file = $this->cache_dir . "/" . sha1($src) . ".png";
+							$cached_file = $this->cache_dir . "/" . sha1($src);
 
 							if (!file_exists($cached_file) || filesize($cached_file) == 0) {
 								$data = fetch_file_contents(array("url" => $src));
@@ -467,11 +470,15 @@ class Af_Zz_Img_Phash extends Plugin {
 
 
 	function hook_house_keeping() {
-		$files = glob($this->cache_dir . "/*.png", GLOB_NOSORT);
+		// we don't need to clean shared image cache, tt-rss handles that
 
-		foreach ($files as $file) {
-			if (filemtime($file) < time() - 86400 * $this->cache_max_age) {
-				unlink($file);
+		if (is_dir($this->cache_dir_pvt) && is_writable($this->cache_dir_pvt)) {
+			$files = glob($this->cache_dir_pvt . "/*.png", GLOB_NOSORT);
+
+			foreach ($files as $file) {
+				if (filemtime($file) < time() - 86400 * $this->cache_max_age) {
+					unlink($file);
+				}
 			}
 		}
 
