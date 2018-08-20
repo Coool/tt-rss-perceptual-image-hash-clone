@@ -31,7 +31,7 @@ class Af_Zz_Img_Phash extends Plugin {
 		$similarity = (int) $_POST["similarity"];
 		$domains_list = $_POST["domains_list"];
 
-		$enable_globally = checkbox_to_sql_bool($_POST["phash_enable_globally"]) == "true";
+		$enable_globally = checkbox_to_sql_bool($_POST["phash_enable_globally"]);
 
 		if ($similarity < 0) $similarity = 0;
 
@@ -326,7 +326,7 @@ class Af_Zz_Img_Phash extends Plugin {
 										}
 									}
 
-									$sth = $this->pdo->prepare("INSERT INTO 
+									$sth = $this->pdo->prepare("INSERT INTO
 										ttrss_plugin_img_phash_urls (url, article_guid, owner_uid, phash) VALUES
 										(?, ?, ?, ?)");
 									$sth->execute([$src, $article_guid, $owner_uid, $hash]);
@@ -376,7 +376,7 @@ class Af_Zz_Img_Phash extends Plugin {
 
 	function hook_render_article_api($row) {
 		$article = isset($row['headline']) ? $row['headline'] : $row['article'];
-				
+
 		return $this->hook_render_article_cdm($article, true);
 	}
 
@@ -482,7 +482,7 @@ class Af_Zz_Img_Phash extends Plugin {
 			}
 		}
 
-		$this->pdo->query("DELETE FROM ttrss_plugin_img_phash_urls 
+		$this->pdo->query("DELETE FROM ttrss_plugin_img_phash_urls
 			WHERE created_at < ".$this->interval_days($this->data_max_age));
 	}
 
@@ -499,9 +499,9 @@ class Af_Zz_Img_Phash extends Plugin {
 	}
 
 	private function guid_to_article_title($article_guid, $owner_uid) {
-		$sth = $this->pdo->prepare("SELECT feed_id, title, updated 
-			FROM ttrss_entries, ttrss_user_entries 
-			WHERE ref_id = id AND 
+		$sth = $this->pdo->prepare("SELECT feed_id, title, updated
+			FROM ttrss_entries, ttrss_user_entries
+			WHERE ref_id = id AND
 				guid = ? AND
 				owner_uid = ?");
 		$sth->execute([$article_guid, $owner_uid]);
@@ -560,7 +560,7 @@ class Af_Zz_Img_Phash extends Plugin {
 				print "Registered to: " . $article_title . "</p>";
 
 				$sth = $this->pdo->prepare("SELECT url, article_guid, ".$this->bitcount_func($phash)." AS distance
-					FROM ttrss_plugin_img_phash_urls WHERE				
+					FROM ttrss_plugin_img_phash_urls WHERE
 					".$this->bitcount_func($phash)." <= ?
 					ORDER BY distance LIMIT 30");
 				$sth->execute([$similarity]);
