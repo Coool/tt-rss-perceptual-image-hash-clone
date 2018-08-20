@@ -10,7 +10,7 @@ class Af_Zz_Img_Phash extends Plugin {
 
 	/* @var PluginHost $host */
 	private $host;
-	private $default_domains_list = "imgur.com i.reddituploads.com pbs.twimg.com i.redd.it i.sli.mg media.tumblr.com i.redditmedia.com kek.gg";
+	private $default_domains_list = "imgur.com reddituploads.com pbs.twimg.com i.redd.it i.sli.mg media.tumblr.com redditmedia.com kek.gg gfycat.com";
 	private $default_similarity = 5;
 	private $cache_max_age = CACHE_MAX_DAYS;
 	private $cache_dir;
