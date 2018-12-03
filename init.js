@@ -3,7 +3,7 @@ function showPhashSimilar(elem) {
 
 		var url = elem.getAttribute("data-check-url");
 
-		var query = "backend.php?op=pluginhandler&plugin=af_zz_img_phash&method=showsimilar&param=" + param_escape(url);
+		var query = "backend.php?op=pluginhandler&plugin=af_zz_img_phash&method=showsimilar&param=" + encodeURIComponent(url);
 
 		if (dijit.byId("phashSimilarDlg"))
 			dijit.byId("phashSimilarDlg").destroyRecursive();
