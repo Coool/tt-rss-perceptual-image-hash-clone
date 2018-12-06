@@ -1,8 +1,4 @@
 <?php
-require_once "imagehash/ImageHash.php";
-require_once "imagehash/Implementation.php";
-require_once "imagehash/Implementations/PerceptualHash.php";
-
 use Jenssegers\ImageHash\Implementations\PerceptualHash;
 use Jenssegers\ImageHash\ImageHash;
 
