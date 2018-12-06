@@ -70,7 +70,8 @@ class Af_Zz_Img_Phash extends Plugin {
 	function hook_prefs_tab($args) {
 		if ($args != "prefFeeds") return;
 
-		print "<div dojoType=\"dijit.layout.AccordionPane\" title=\"".__('Filter similar images')."\">";
+		print "<div dojoType=\"dijit.layout.AccordionPane\" 
+			title=\"<i class='material-icons'>photo</i> ".__('Filter similar images')."\">";
 
 		if (DB_TYPE == "pgsql") {
 			$res = $this->pdo->query("select 'unique_1bits'::regproc");
