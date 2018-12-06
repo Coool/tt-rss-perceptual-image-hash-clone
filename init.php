@@ -143,9 +143,8 @@ class Af_Zz_Img_Phash extends Plugin {
 			print "<ul class=\"browseFeedList\" style=\"border-width : 1px\">";
 			foreach ($enabled_feeds as $f) {
 				print "<li>" .
-					"<img src='images/pub_set.png'
-						style='vertical-align : middle'> <a href='#'
-						onclick='editFeed($f)'>".
+					"<a href='#'
+						onclick='CommonDialogs.editFeed($f)'>".
 					Feeds::getFeedTitle($f) . "</a></li>";
 			}
 			print "</ul>";
