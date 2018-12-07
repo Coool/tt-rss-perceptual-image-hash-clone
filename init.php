@@ -561,7 +561,7 @@ class Af_Zz_Img_Phash extends Plugin {
 					ORDER BY distance LIMIT 30");
 				$sth->execute([$similarity]);
 
-				print "<div class=\"filterTestHolder\" style=\"border-width : 1px\"><table>";
+				print "<div class=\"panel panel-scrollable\" style=\"border-width : 1px\"><table>";
 
 				while ($line = $sth->fetch()) {
 					print "<tr>";
