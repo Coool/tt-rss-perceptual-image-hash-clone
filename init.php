@@ -70,7 +70,7 @@ class Af_Zz_Img_Phash extends Plugin {
 	function hook_prefs_tab($args) {
 		if ($args != "prefFeeds") return;
 
-		print "<div dojoType=\"dijit.layout.AccordionPane\" 
+		print "<div dojoType=\"dijit.layout.AccordionPane\"
 			title=\"<i class='material-icons'>photo</i> ".__('Filter similar images')."\">";
 
 		if (DB_TYPE == "pgsql") {
@@ -143,8 +143,7 @@ class Af_Zz_Img_Phash extends Plugin {
 			print "<ul class='panel panel-scrollable list list-unstyled'>";
 			foreach ($enabled_feeds as $f) {
 				print "<li>" .
-					"<a href='#'
-						onclick='CommonDialogs.editFeed($f)'>".
+					"<a href='#' onclick='CommonDialogs.editFeed($f)'>".
 					Feeds::getFeedTitle($f) . "</a></li>";
 			}
 			print "</ul>";
@@ -154,8 +153,8 @@ class Af_Zz_Img_Phash extends Plugin {
 	}
 
 	function hook_prefs_edit_feed($feed_id) {
-		print "<div class=\"dlgSec\">".__("Similar images")."</div>";
-		print "<div class=\"dlgSecCont\">";
+		print "<header>".__("Similar images")."</header>";
+		print "<section>";
 
 		$enabled_feeds = $this->host->get($this, "enabled_feeds");
 		if (!array($enabled_feeds)) $enabled_feeds = array();
@@ -163,11 +162,12 @@ class Af_Zz_Img_Phash extends Plugin {
 		$key = array_search($feed_id, $enabled_feeds);
 		$checked = $key !== FALSE ? "checked" : "";
 
-		print "<hr/><input dojoType=\"dijit.form.CheckBox\" type=\"checkbox\" id=\"phash_similarity_enabled\"
-			name=\"phash_similarity_enabled\"
-			$checked>&nbsp;<label for=\"phash_similarity_enabled\">".__('Filter similar images')."</label>";
+		print "<fieldset>";
+		print "<label class='checkbox'><input dojoType='dijit.form.CheckBox' type='checkbox' id='phash_similarity_enabled'
+			name='phash_similarity_enabled' $checked> ".__('Filter similar images')."</label>";
+		print "</fieldset>";
 
-		print "</div>";
+		print "</section>";
 	}
 
 	function hook_prefs_save_feed($feed_id) {
