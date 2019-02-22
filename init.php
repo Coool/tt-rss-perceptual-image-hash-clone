@@ -70,7 +70,7 @@ class Af_Zz_Img_Phash extends Plugin {
 	function hook_prefs_tab($args) {
 		if ($args != "prefFeeds") return;
 
-		print "<div dojoType=\"dijit.layout.AccordionPane\"
+		print "<div dojoType='dijit.layout.AccordionPane'
 			title=\"<i class='material-icons'>photo</i> ".__('Filter similar images')."\">";
 
 		if (DB_TYPE == "pgsql") {
@@ -85,9 +85,9 @@ class Af_Zz_Img_Phash extends Plugin {
 		$domains_list = $this->host->get($this, "domains_list", $this->default_domains_list);
 		$enable_globally = $this->host->get($this, "enable_globally");
 
-		print "<form dojoType=\"dijit.form.Form\">";
+		print "<form dojoType='dijit.form.Form'>";
 
-		print "<script type=\"dojo/method\" event=\"onSubmit\" args=\"evt\">
+		print "<script type='dojo/method' event='onSubmit' args='evt'>
 			evt.preventDefault();
 			if (this.validate()) {
 				console.log(dojo.objectToQuery(this.getValues()));
@@ -105,29 +105,35 @@ class Af_Zz_Img_Phash extends Plugin {
 		print_hidden("method", "save");
 		print_hidden("plugin", "af_zz_img_phash");
 
-		print "<p>" . format_notice("Lower hamming distance value indicates images being more similar.");
+		print "<h2>" . __("Global settings") . "</h2>";
 
-		print "<h3>" . __("Global settings") . "</h3>";
+		print "<fieldset>";
 
-		print "<table>";
+		print "<label>".__("Limit to domains (space-separated):")."</label>";
+		print "<textarea dojoType='dijit.form.SimpleTextarea' style='height: 100px; width: 500px; display: block'
+			required='1' name='domains_list'>$domains_list</textarea>";
 
-		print "<tr><td width=\"40%\">".__("Limit to domains (space-separated):")."</td>";
-		print "<td>
-			<textarea dojoType=\"dijit.form.SimpleTextarea\" style=\"height: 100px;\"
-			required=\"1\" name=\"domains_list\">$domains_list</textarea></td></tr>";
-		print "<tr><td width=\"40%\">".__("Maximum hamming distance:")."</td>";
-		print "<td>
-			<input dojoType=\"dijit.form.ValidationTextBox\"
-			placeholder=\"5\"
-			required=\"1\" name=\"similarity\" value=\"$similarity\"></td></tr>";
-		print "<tr><td width=\"40%\">".__("Enable for all feeds:")."</td>";
-		print "<td>";
+		print "</fieldset><fieldset>";
+
+		print "<label>".__("Maximum hamming distance:")."</label>";
+		print "<input dojoType='dijit.form.NumberSpinner'
+			placeholder='5' required='1' name='similarity' id='phash_img_similarity' value='$similarity'>";
+
+		print "<div dojoType='dijit.Tooltip' connectId='phash_img_similarity' position='below'>" .
+		  __("Lower hamming distance value indicates images being more similar.") . "</div>";
+
+		print "</fieldset><fieldset class='narrow'>";
+
+		print "<label class='checkbox'>";
 		print_checkbox("phash_enable_globally", $enable_globally);
-		print "</td></tr>";
+		print " " . __("Enable for all feeds");
+		print "</label>";
+
+		print "</fieldset>";
 
 		print "</table>";
 
-		print "<p>"; print_button("submit", __("Save"));
+		print_button("submit", __("Save"), "class='alt-primary'");
 
 		print "</form>";
 
@@ -142,8 +148,7 @@ class Af_Zz_Img_Phash extends Plugin {
 
 			print "<ul class='panel panel-scrollable list list-unstyled'>";
 			foreach ($enabled_feeds as $f) {
-				print "<li>" .
-					"<i class='material-icons'>rss_feed</i> <a href='#' onclick=\"CommonDialogs.editFeed($f)\">".
+				print "<li><i class='material-icons'>rss_feed</i> <a href='#' onclick=\"CommonDialogs.editFeed($f)\">".
 					Feeds::getFeedTitle($f) . "</a></li>";
 			}
 			print "</ul>";
