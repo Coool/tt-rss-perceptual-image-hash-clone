@@ -143,7 +143,7 @@ class Af_Zz_Img_Phash extends Plugin {
 			print "<ul class='panel panel-scrollable list list-unstyled'>";
 			foreach ($enabled_feeds as $f) {
 				print "<li>" .
-					"<a href='#' onclick='CommonDialogs.editFeed($f)'>".
+					"<i class='material-icons'>rss_feed</i> <a href='#' onclick=\"CommonDialogs.editFeed($f)\">".
 					Feeds::getFeedTitle($f) . "</a></li>";
 			}
 			print "</ul>";
@@ -561,7 +561,7 @@ class Af_Zz_Img_Phash extends Plugin {
 					ORDER BY distance LIMIT 30");
 				$sth->execute([$similarity]);
 
-				print "<div class=\"filterTestHolder\" style=\"border-width : 1px\"><table>";
+				print "<div class=\"panel panel-scrollable\" style=\"border-width : 1px\"><table>";
 
 				while ($line = $sth->fetch()) {
 					print "<tr>";
