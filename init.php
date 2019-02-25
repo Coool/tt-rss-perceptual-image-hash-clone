@@ -247,8 +247,13 @@ class Af_Zz_Img_Phash extends Plugin {
 
 		if (!$enable_globally) {
 			$enabled_feeds = $this->host->get($this, "enabled_feeds");
-			$key = array_search($article["feed"]["id"], $enabled_feeds);
-			if ($key === FALSE) return $article;
+
+			if (is_array($enabled_feeds)) {
+				$key = array_search($article["feed"]["id"], $enabled_feeds);
+				if ($key === FALSE) return $article;
+			} else {
+				return $article;
+			}
 		}
 
 		$owner_uid = $article["owner_uid"];
