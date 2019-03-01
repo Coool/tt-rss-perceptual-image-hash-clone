@@ -11,7 +11,7 @@ class Af_Zz_Img_Phash extends Plugin {
 	private $cache_max_age = CACHE_MAX_DAYS;
 	private $cache_dir;
 	private $cache_dir_pvt;
-	private $data_max_age = 180; // days
+	private $data_max_age = 240; // days
 
 	function about() {
 		return array(1.0,
@@ -23,6 +23,10 @@ class Af_Zz_Img_Phash extends Plugin {
 
 	function get_js() {
 		return file_get_contents(__DIR__ . "/init.js");
+	}
+
+	function get_css() {
+		return file_get_contents(__DIR__ . "/init.css");
 	}
 
 	function save() {
@@ -452,7 +456,7 @@ class Af_Zz_Img_Phash extends Plugin {
 
 						$sth = $this->pdo->prepare("SELECT article_guid FROM ttrss_plugin_img_phash_urls WHERE
 							owner_uid = ? AND
-							created_at >= ".$this->interval_days(30)." AND
+							created_at >= ".$this->interval_days($this->data_max_age)." AND
 							".$this->bitcount_func($phash)." <= ? ORDER BY created_at LIMIT 1");
 						$sth->execute([$owner_uid, $similarity]);
 
@@ -540,12 +544,12 @@ class Af_Zz_Img_Phash extends Plugin {
 
 		$similarity = (int) $this->host->get($this, "similarity", $this->default_similarity);
 
-		print "<img style='float : right; max-width : 64px; max-height : 64px; height : auto; width : auto;' src=\"$url_htmlescaped\">";
+		print "<img class='trgm-related-thumb pull-right' src=\"$url_htmlescaped\">";
 
-		print "<h2><a target=\"_blank\" href=\"$url_htmlescaped\">".truncate_middle($url_htmlescaped, 48)."</a></h2>";
+		print "<h2><a target='_blank' href=\"$url_htmlescaped\">".truncate_middle($url_htmlescaped, 48)."</a></h2>";
 
 		$sth = $this->pdo->prepare("SELECT phash FROM ttrss_plugin_img_phash_urls WHERE
-			owner_uid = ?AND
+			owner_uid = ? AND
 			url = ? LIMIT 1");
 		$sth->execute([$owner_uid, $url]);
 
@@ -555,7 +559,7 @@ class Af_Zz_Img_Phash extends Plugin {
 
 			$sth = $this->pdo->prepare("SELECT article_guid FROM ttrss_plugin_img_phash_urls WHERE
 							owner_uid = ? AND
-							created_at >= ".$this->interval_days(30)." AND
+							created_at >= ".$this->interval_days($this->data_max_age)." AND
 							".$this->bitcount_func($phash)." <= ? ORDER BY created_at LIMIT 1");
 			$sth->execute([$owner_uid, $similarity]);
 
@@ -573,7 +577,7 @@ class Af_Zz_Img_Phash extends Plugin {
 					ORDER BY distance LIMIT 30");
 				$sth->execute([$similarity]);
 
-				print "<div class=\"panel panel-scrollable\" style=\"border-width : 1px\"><table>";
+				print "<div class='panel panel-scrollable' style='border-width : 1px'><table>";
 
 				while ($line = $sth->fetch()) {
 					print "<tr>";
@@ -590,12 +594,12 @@ class Af_Zz_Img_Phash extends Plugin {
 					print "</td>";
 
 					print "<td>";
-					print "<div style='display : inline-block'><a target=\"_blank\" href=\"$url\">".truncate_middle($url, 48)."</a> (Distance: $distance)";
+					print "<div style='display : inline-block'><a target='_blank' href=\"$url\">".truncate_middle($url, 48)."</a> (Distance: $distance)";
 
 					if ($is_checked) print " (Original)";
 
 					print "<br/>$article_title";
-					print "<br/><img style='max-width : 64px; max-height : 64px; height : auto; width : auto;' src=\"$url\"></div>";
+					print "<br/><img class='trgm-related-thumb' src=\"$url\"></div>";
 					print "</td>";
 
 					print "</tr>";
@@ -603,9 +607,17 @@ class Af_Zz_Img_Phash extends Plugin {
 
 				print "</table></div>";
 
+			} else {
+				print "<div class='text-error'>" . __("No information found for this URL.") . "</div>";
 			}
+		} else {
+			print "<div class='text-error'>" . __("No information found for this URL.") . "</div>";
 		}
 
+		print "<footer class='text-center'>
+			<button dojoType='dijit.form.Button' onclick=\"dijit.byId('phashSimilarDlg').hide()\">"
+			.__('Close this window')."</button>
+			</footer>";
 
 	}
 
