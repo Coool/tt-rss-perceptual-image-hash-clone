@@ -1,0 +1,78 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-03-05 09:58+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: init.php:80
+msgid "Filter similar images (af_zz_img_phash)"
+msgstr ""
+
+#: init.php:114
+msgid "Global settings"
+msgstr ""
+
+#: init.php:118
+msgid "Limit to domains (space-separated):"
+msgstr ""
+
+#: init.php:124
+msgid "Maximum hamming distance:"
+msgstr ""
+
+#: init.php:129
+msgid "Lower hamming distance value indicates images being more similar."
+msgstr ""
+
+#: init.php:135
+msgid "Enable for all feeds"
+msgstr ""
+
+#: init.php:142
+msgid "Save"
+msgstr ""
+
+#: init.php:167 init.js:13
+msgid "Similar images"
+msgstr ""
+
+#: init.php:178
+msgid "Filter similar images"
+msgstr ""
+
+#: init.php:573
+msgid "Perceptual hash:"
+msgstr ""
+
+#: init.php:575
+msgid "Belongs to:"
+msgstr ""
+
+#: init.php:577
+msgid "Registered:"
+msgstr ""
+
+#: init.php:601
+msgid "Original"
+msgstr ""
+
+#: init.php:612 init.php:615
+msgid "No information found for this URL."
+msgstr ""
+
+#: init.php:622
+msgid "Close this window"
+msgstr ""
