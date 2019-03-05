@@ -573,7 +573,7 @@ class Af_Zz_Img_Phash extends Plugin {
 
 				print "<fieldset class='narrow'><label class='inline'>Perceptual hash:</label>" . base_convert($phash, 10, 16) . "</fieldset>";
 				print "<fieldset class='narrow'><label class='inline'>Belongs to: </label> $article_title</fieldset>";
-				print "<fieldset class='narrow'><label class='inline'>Registered:</label> $created_at</p>";
+				print "<fieldset class='narrow'><label class='inline'>Registered:</label> $created_at</fieldset>";
 
 				$sth = $this->pdo->prepare("SELECT url, article_guid, ".$this->bitcount_func($phash)." AS distance
 					FROM ttrss_plugin_img_phash_urls WHERE
