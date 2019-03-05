@@ -1,7 +1,7 @@
 #!/bin/sh
 TEMPLATE=af_zz_img_phash.pot
 
-xgettext -kP__:2 -kP__sprintf:2 -L PHP -o $TEMPLATE *.php
+xgettext -k__ -kT_sprintf -L PHP -o $TEMPLATE *.php
 xgettext -k__ -L Java -j -o $TEMPLATE *.js
 
 update_lang() {

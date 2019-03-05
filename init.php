@@ -41,7 +41,7 @@ class Af_Zz_Img_Phash extends Plugin {
 		$this->host->set($this, "enable_globally", $enable_globally);
 		$this->host->set($this, "domains_list", $domains_list);
 
-		echo P_sprintf($this, "Data saved (%s, %s, %d)", $similarity, $domains_list, $enable_globally);
+		echo $this->T_sprintf("Data saved (%s, %s, %d)", $similarity, $domains_list, $enable_globally);
 	}
 
 	function init($host) {
@@ -77,7 +77,7 @@ class Af_Zz_Img_Phash extends Plugin {
 		if ($args != "prefFeeds") return;
 
 		print "<div dojoType='dijit.layout.AccordionPane'
-			title=\"<i class='material-icons'>photo</i> ".P__($this, 'Filter similar images (af_zz_img_phash)')."\">";
+			title=\"<i class='material-icons'>photo</i> ".$this->__( 'Filter similar images (af_zz_img_phash)')."\">";
 
 		if (DB_TYPE == "pgsql") {
 			$res = $this->pdo->query("select 'unique_1bits'::regproc");
@@ -111,35 +111,35 @@ class Af_Zz_Img_Phash extends Plugin {
 		print_hidden("method", "save");
 		print_hidden("plugin", "af_zz_img_phash");
 
-		print "<h2>" . P__($this, "Global settings") . "</h2>";
+		print "<h2>" . $this->__( "Global settings") . "</h2>";
 
 		print "<fieldset>";
 
-		print "<label>".P__($this, "Limit to domains (space-separated):")."</label>";
+		print "<label>".$this->__( "Limit to domains (space-separated):")."</label>";
 		print "<textarea dojoType='dijit.form.SimpleTextarea' style='height: 100px; width: 500px; display: block'
 			required='1' name='domains_list'>$domains_list</textarea>";
 
 		print "</fieldset><fieldset>";
 
-		print "<label>".P__($this, "Maximum hamming distance:")."</label>";
+		print "<label>".$this->__( "Maximum hamming distance:")."</label>";
 		print "<input dojoType='dijit.form.NumberSpinner'
 			placeholder='5' required='1' name='similarity' id='phash_img_similarity' value='$similarity'>";
 
 		print "<div dojoType='dijit.Tooltip' connectId='phash_img_similarity' position='below'>" .
-		  P__($this, "Lower hamming distance value indicates images being more similar.") . "</div>";
+		  $this->__( "Lower hamming distance value indicates images being more similar.") . "</div>";
 
 		print "</fieldset><fieldset class='narrow'>";
 
 		print "<label class='checkbox'>";
 		print_checkbox("phash_enable_globally", $enable_globally);
-		print " " . P__($this, "Enable for all feeds");
+		print " " . $this->__( "Enable for all feeds");
 		print "</label>";
 
 		print "</fieldset>";
 
 		print "</table>";
 
-		print_button("submit", P__($this, "Save"), "class='alt-primary'");
+		print_button("submit", $this->__( "Save"), "class='alt-primary'");
 
 		print "</form>";
 
@@ -164,7 +164,7 @@ class Af_Zz_Img_Phash extends Plugin {
 	}
 
 	function hook_prefs_edit_feed($feed_id) {
-		print "<header>".P__($this, "Similar images")."</header>";
+		print "<header>".$this->__( "Similar images")."</header>";
 		print "<section>";
 
 		$enabled_feeds = $this->host->get($this, "enabled_feeds");
@@ -175,7 +175,7 @@ class Af_Zz_Img_Phash extends Plugin {
 
 		print "<fieldset>";
 		print "<label class='checkbox'><input dojoType='dijit.form.CheckBox' type='checkbox' id='phash_similarity_enabled'
-			name='phash_similarity_enabled' $checked> ".P__($this, 'Filter similar images')."</label>";
+			name='phash_similarity_enabled' $checked> ".$this->__( 'Filter similar images')."</label>";
 		print "</fieldset>";
 
 		print "</section>";
@@ -523,7 +523,7 @@ class Af_Zz_Img_Phash extends Plugin {
 			$feed_id = $row["feed_id"];
 			$updated = $row["updated"];
 
-			$article_title = P_sprintf($this, "%s in %s (%s)",
+			$article_title = $this->T_sprintf("%s in %s (%s)",
 				"<span title='$article_guid'>$article_title</span>",
 				"<a href='#' onclick='viewfeed({feed: $feed_id})'>" . Feeds::getFeedTitle($feed_id) . "</a>",
 				make_local_datetime($updated, true));
@@ -570,11 +570,11 @@ class Af_Zz_Img_Phash extends Plugin {
 				$article_title = $this->guid_to_article_title($article_guid, $owner_uid);
 				$created_at = $row['created_at'];
 
-				print "<fieldset class='narrow'><label class='inline'>".P__($this, "Perceptual hash:")."</label>".
+				print "<fieldset class='narrow'><label class='inline'>".$this->__( "Perceptual hash:")."</label>".
 					base_convert($phash, 10, 16) . "</fieldset>";
-				print "<fieldset class='narrow'><label class='inline'>".P__($this, "Belongs to:")."</label>
+				print "<fieldset class='narrow'><label class='inline'>".$this->__( "Belongs to:")."</label>
 					$article_title</fieldset>";
-				print "<fieldset class='narrow'><label class='inline'>".P__($this, "Registered:")."</label>
+				print "<fieldset class='narrow'><label class='inline'>".$this->__( "Registered:")."</label>
 					$created_at</fieldset>";
 
 				$sth = $this->pdo->prepare("SELECT url, article_guid, ".$this->bitcount_func($phash)." AS distance
@@ -596,9 +596,9 @@ class Af_Zz_Img_Phash extends Plugin {
 					$is_checked = ($rel_article_guid == $article_guid) ? "checked" : "";
 
 					print "<div><a target='_blank' href=\"$url\">".truncate_middle($url, 48)."</a> ".
-						"(" . P_sprintf($this, "Distance: %d", $distance) . ")";
+						"(" . $this->T_sprintf("Distance: %d", $distance) . ")";
 
-					if ($is_checked) print " <strong>(".P__($this, "Original").")</strong>";
+					if ($is_checked) print " <strong>(".$this->__( "Original").")</strong>";
 
 					print "<br/>$article_title";
 					print "<br/><img class='trgm-related-thumb' src=\"$url\"></div>";
@@ -609,17 +609,17 @@ class Af_Zz_Img_Phash extends Plugin {
 				print "</ul>";
 
 			} else {
-				print "<div class='text-error'>" . P__($this, "No information found for this URL.") . "</div>";
+				print "<div class='text-error'>" . $this->__( "No information found for this URL.") . "</div>";
 			}
 		} else {
-			print "<div class='text-error'>" . P__($this, "No information found for this URL.") . "</div>";
+			print "<div class='text-error'>" . $this->__( "No information found for this URL.") . "</div>";
 		}
 
 		print "</section>";
 
 		print "<footer class='text-center'>
 			<button dojoType='dijit.form.Button' onclick=\"dijit.byId('phashSimilarDlg').hide()\">"
-			.P__($this, 'Close this window')."</button>
+			.$this->__( 'Close this window')."</button>
 			</footer>";
 
 	}
