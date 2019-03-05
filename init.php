@@ -6,7 +6,7 @@ class Af_Zz_Img_Phash extends Plugin {
 
 	/* @var PluginHost $host */
 	private $host;
-	private $default_domains_list = "imgur.com reddituploads.com pbs.twimg.com i.redd.it i.sli.mg media.tumblr.com redditmedia.com kek.gg gfycat.com";
+	private $default_domains_list = "imgur.com reddituploads.com pbs.twimg.com .redd.it i.sli.mg media.tumblr.com redditmedia.com kek.gg gfycat.com";
 	private $default_similarity = 5;
 	private $cache_max_age = CACHE_MAX_DAYS;
 	private $cache_dir;
@@ -544,9 +544,11 @@ class Af_Zz_Img_Phash extends Plugin {
 
 		$similarity = (int) $this->host->get($this, "similarity", $this->default_similarity);
 
+		print "<section class='narrow'>";
+
 		print "<img class='trgm-related-thumb pull-right' src=\"$url_htmlescaped\">";
 
-		print "<h2><a target='_blank' href=\"$url_htmlescaped\">".truncate_middle($url_htmlescaped, 48)."</a></h2>";
+		print "<fieldset><h2><a target='_blank' href=\"$url_htmlescaped\">".truncate_middle($url_htmlescaped, 48)."</a></h2></fieldset>";
 
 		$sth = $this->pdo->prepare("SELECT phash FROM ttrss_plugin_img_phash_urls WHERE
 			owner_uid = ? AND
@@ -557,7 +559,7 @@ class Af_Zz_Img_Phash extends Plugin {
 
 			$phash = $row['phash'];
 
-			$sth = $this->pdo->prepare("SELECT article_guid FROM ttrss_plugin_img_phash_urls WHERE
+			$sth = $this->pdo->prepare("SELECT article_guid, SUBSTRING_FOR_DATE(created_at,1,19) AS created_at FROM ttrss_plugin_img_phash_urls WHERE
 							owner_uid = ? AND
 							created_at >= ".$this->interval_days($this->data_max_age)." AND
 							".$this->bitcount_func($phash)." <= ? ORDER BY created_at LIMIT 1");
@@ -567,9 +569,11 @@ class Af_Zz_Img_Phash extends Plugin {
 
 				$article_guid = $row['article_guid'];
 				$article_title = $this->guid_to_article_title($article_guid, $owner_uid);
+				$created_at = $row['created_at'];
 
-				print "<p>Perceptual hash: " . base_convert($phash, 10, 16) . "<br/>";
-				print "Registered to: " . $article_title . "</p>";
+				print "<fieldset class='narrow'><label class='inline'>Perceptual hash:</label>" . base_convert($phash, 10, 16) . "</fieldset>";
+				print "<fieldset class='narrow'><label class='inline'>Belongs to: </label> $article_title</fieldset>";
+				print "<fieldset class='narrow'><label class='inline'>Registered:</label> $created_at</p>";
 
 				$sth = $this->pdo->prepare("SELECT url, article_guid, ".$this->bitcount_func($phash)." AS distance
 					FROM ttrss_plugin_img_phash_urls WHERE
@@ -577,10 +581,10 @@ class Af_Zz_Img_Phash extends Plugin {
 					ORDER BY distance LIMIT 30");
 				$sth->execute([$similarity]);
 
-				print "<div class='panel panel-scrollable' style='border-width : 1px'><table>";
+				print "<ul class='panel panel-scrollable list list-unstyled'>";
 
 				while ($line = $sth->fetch()) {
-					print "<tr>";
+					print "<li>";
 
 					$url = htmlspecialchars($line["url"]);
 					$distance = $line["distance"];
@@ -589,23 +593,17 @@ class Af_Zz_Img_Phash extends Plugin {
 
 					$is_checked = ($rel_article_guid == $article_guid) ? "checked" : "";
 
-					print "<td style='vertical-align : top'>";
-					print_checkbox("", $is_checked, "", "disabled");
-					print "</td>";
+					print "<div><a target='_blank' href=\"$url\">".truncate_middle($url, 48)."</a> (Distance: $distance)";
 
-					print "<td>";
-					print "<div style='display : inline-block'><a target='_blank' href=\"$url\">".truncate_middle($url, 48)."</a> (Distance: $distance)";
-
-					if ($is_checked) print " (Original)";
+					if ($is_checked) print " <strong>(Original)</strong>";
 
 					print "<br/>$article_title";
 					print "<br/><img class='trgm-related-thumb' src=\"$url\"></div>";
-					print "</td>";
 
-					print "</tr>";
+					print "</li>";
 				}
 
-				print "</table></div>";
+				print "</ul>";
 
 			} else {
 				print "<div class='text-error'>" . __("No information found for this URL.") . "</div>";
@@ -613,6 +611,8 @@ class Af_Zz_Img_Phash extends Plugin {
 		} else {
 			print "<div class='text-error'>" . __("No information found for this URL.") . "</div>";
 		}
+
+		print "</section>";
 
 		print "<footer class='text-center'>
 			<button dojoType='dijit.form.Button' onclick=\"dijit.byId('phashSimilarDlg').hide()\">"
