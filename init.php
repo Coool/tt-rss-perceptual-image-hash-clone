@@ -558,7 +558,7 @@ class Af_Zz_Img_Phash extends Plugin {
 
 			$phash = $row['phash'];
 
-			$sth = $this->pdo->prepare("SELECT article_guid, SUBSTRING_FOR_DATE(created_at,1,19) AS created_at FROM ttrss_plugin_img_phash_urls WHERE
+			$sth = $this->pdo->prepare("SELECT article_guid, ".SUBSTRING_FOR_DATE."(created_at,1,19) AS created_at FROM ttrss_plugin_img_phash_urls WHERE
 							owner_uid = ? AND
 							created_at >= ".$this->interval_days($this->data_max_age)." AND
 							".$this->bitcount_func($phash)." <= ? ORDER BY created_at LIMIT 1");
