@@ -79,11 +79,16 @@ class Af_Zz_Img_Phash extends Plugin {
 		print "<div dojoType='dijit.layout.AccordionPane'
 			title=\"<i class='material-icons'>photo</i> ".$this->__( 'Filter similar images (af_zz_img_phash)')."\">";
 
-		if (DB_TYPE == "pgsql" && true !== IMG_HASH_SQL_FUNCTION) {
-			$res = $this->pdo->query("SELECT routine_name FROM information_schema.routines WHERE routine_name = 'unique_1bits' AND routine_type = 'FUNCTION'");
+		if (DB_TYPE == "pgsql") {
+			if (true === IMG_HASH_SQL_FUNCTION) {
+				print_error("Using SQL implementation of bit_count; UI performance may not be as responsive as installing extension 'https://github.com/sldab/count-bits'. See README.txt");
+			}
+			else {
+				$res = $this->pdo->query("SELECT routine_name FROM information_schema.routines WHERE routine_name = 'unique_1bits' AND routine_type = 'FUNCTION'");
 
-			if (!$res->fetch()) {
-				print_error("Required function from count_bits extension not found.");
+				if (!$res->fetch()) {
+					print_error("Required function from count_bits extension not found.");
+				}
 			}
 		}
 
