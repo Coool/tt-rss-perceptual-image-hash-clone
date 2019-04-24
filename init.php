@@ -79,8 +79,8 @@ class Af_Zz_Img_Phash extends Plugin {
 		print "<div dojoType='dijit.layout.AccordionPane'
 			title=\"<i class='material-icons'>photo</i> ".$this->__( 'Filter similar images (af_zz_img_phash)')."\">";
 
-		if (DB_TYPE == "pgsql") {
-			$res = $this->pdo->query("select 'unique_1bits'::regproc");
+		if (DB_TYPE == "pgsql" && true !== IMG_HASH_SQL_FUNCTION) {
+			$res = $this->pdo->query("SELECT routine_name FROM information_schema.routines WHERE routine_name = 'unique_1bits' AND routine_type = 'FUNCTION'");
 
 			if (!$res->fetch()) {
 				print_error("Required function from count_bits extension not found.");
@@ -394,8 +394,8 @@ class Af_Zz_Img_Phash extends Plugin {
 
 	function hook_render_article_cdm($article, $api_mode = false) {
 
-		if (DB_TYPE == "pgsql") {
-			$res = $this->pdo->query("select 'unique_1bits'::regproc");
+		if (DB_TYPE == "pgsql" && true !== IMG_HASH_SQL_FUNCTION) {
+			$res = $this->pdo->query("SELECT routine_name FROM information_schema.routines WHERE routine_name = 'unique_1bits' AND routine_type = 'FUNCTION'");
 			if (!$res->fetch()) return $article;
 		}
 
@@ -641,7 +641,7 @@ class Af_Zz_Img_Phash extends Plugin {
 
 	private function bitcount_func($phash) {
 		if (DB_TYPE == "pgsql") {
-			return "unique_1bits('$phash', phash)";
+			return true === IMG_HASH_SQL_FUNCTION ? "bit_count('$phash' # phash)" : "unique_1bits('$phash', phash)";
 		} else {
 			return "bit_count('$phash' ^ phash)";
 		}
