@@ -84,9 +84,8 @@ class Af_Zz_Img_Phash extends Plugin {
 				print_error("Using SQL implementation of bit_count; UI performance may not be as responsive as installing extension 'https://github.com/sldab/count-bits'. See README.txt");
 			}
 			else {
-				$res = $this->pdo->query("SELECT routine_name FROM information_schema.routines WHERE routine_name = 'unique_1bits' AND routine_type = 'FUNCTION'");
-
-				if (!$res->fetch()) {
+				try { $res = $this->pdo->query("select 'unique_1bits'::regproc"); } catch (PDOException $e) { ; }
+				if (!$res || !$res->fetch()) {
 					print_error("Required function from count_bits extension not found.");
 				}
 			}
@@ -400,8 +399,8 @@ class Af_Zz_Img_Phash extends Plugin {
 	function hook_render_article_cdm($article, $api_mode = false) {
 
 		if (DB_TYPE == "pgsql" && true !== IMG_HASH_SQL_FUNCTION) {
-			$res = $this->pdo->query("SELECT routine_name FROM information_schema.routines WHERE routine_name = 'unique_1bits' AND routine_type = 'FUNCTION'");
-			if (!$res->fetch()) return $article;
+			try { $res = $this->pdo->query("select 'unique_1bits'::regproc"); } catch (PDOException $e) { ; }
+			if (!$res || !$res->fetch()) return $article;
 		}
 
 		$owner_uid = $_SESSION["uid"];
