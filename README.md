@@ -5,7 +5,8 @@
 
 ## Installation
 
-Git clone to (tt-rss)/plugins.local/af_zz_img_phash
+1. Git clone to ``plugins.local/af_zz_img_phash``
+2. Enable in feed editor for specific feeds (after enabling the plugin)
 
 ## If you can't use count bits on PostgreSQL, you can do the following:
 
