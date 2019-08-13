@@ -8,10 +8,10 @@ class Af_Zz_Img_Phash extends Plugin {
 	private $host;
 	private $default_domains_list = "imgur.com reddituploads.com pbs.twimg.com .redd.it i.sli.mg media.tumblr.com redditmedia.com kek.gg gfycat.com";
 	private $default_similarity = 5;
-	private $cache_max_age = CACHE_MAX_DAYS;
-	private $cache_dir;
-	private $cache_dir_pvt;
 	private $data_max_age = 240; // days
+
+	/* @var DiskCache $cache */
+	private $cache;
 
 	function about() {
 		return array(1.0,
@@ -46,21 +46,7 @@ class Af_Zz_Img_Phash extends Plugin {
 
 	function init($host) {
 		$this->host = $host;
-
-		// pvt is the old separate cache directory, only needed to expire old files
-		$this->cache_dir_pvt = CACHE_DIR . "/af_zz_img_phash/";
-		$this->cache_dir = CACHE_DIR . "/images/";
-
-		if (!is_dir($this->cache_dir)) {
-			mkdir($this->cache_dir);
-			chmod($this->cache_dir, 0777);
-		}
-
-		if (is_dir($this->cache_dir)) {
-
-			if (!is_writable($this->cache_dir))
-				chmod($this->cache_dir, 0777);
-		}
+		$this->cache = new DiskCache("images");
 
 		$host->add_hook($host::HOOK_ARTICLE_FILTER, $this);
 		$host->add_hook($host::HOOK_PREFS_TAB, $this);
@@ -70,7 +56,6 @@ class Af_Zz_Img_Phash extends Plugin {
 		$host->add_hook($host::HOOK_RENDER_ARTICLE, $this);
 		$host->add_hook($host::HOOK_RENDER_ARTICLE_CDM, $this);
 		$host->add_hook($host::HOOK_RENDER_ARTICLE_API, $this);
-
 	}
 
 	function hook_prefs_tab($args) {
@@ -298,24 +283,24 @@ class Af_Zz_Img_Phash extends Plugin {
 
 						_debug("phash: downloading and calculating hash...");
 
-						if (is_writable($this->cache_dir)) {
-							$cached_file = $this->cache_dir . "/" . sha1($src);
+						if ($this->cache->isWritable()) {
+							$cached_file = sha1($src);
 
-							if (!file_exists($cached_file) || filesize($cached_file) == 0) {
-								$data = fetch_file_contents(array("url" => $src));
+							if ($this->cache->getSize($cached_file) <= 0) {
+								$data = fetch_file_contents(array("url" => $src, "max_size" => MAX_CACHE_FILE_SIZE));
 
 								if ($data && strlen($data) > MIN_CACHE_FILE_SIZE) {
-									file_put_contents($cached_file, $data);
+									$this->cache->put($cached_file, $data);
 								}
 							} else {
 								_debug("phash: reading from local cache: $cached_file");
 
-								$data = file_get_contents($cached_file);
+								$data = $this->cache->get($cached_file);
 							}
 						} else {
 							_debug("phash: cache directory is not writable");
 
-							$data = fetch_file_contents(array("url" => $src));
+							$data = fetch_file_contents(array("url" => $src, "max_size" => MAX_CACHE_FILE_SIZE));
 						}
 
 						if ($data) {
@@ -486,18 +471,6 @@ class Af_Zz_Img_Phash extends Plugin {
 
 
 	function hook_house_keeping() {
-		// we don't need to clean shared image cache, tt-rss handles that
-
-		if (is_dir($this->cache_dir_pvt) && is_writable($this->cache_dir_pvt)) {
-			$files = glob($this->cache_dir_pvt . "/*.png", GLOB_NOSORT);
-
-			foreach ($files as $file) {
-				if (filemtime($file) < time() - 86400 * $this->cache_max_age) {
-					unlink($file);
-				}
-			}
-		}
-
 		$this->pdo->query("DELETE FROM ttrss_plugin_img_phash_urls
 			WHERE created_at < ".$this->interval_days($this->data_max_age));
 	}
