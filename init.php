@@ -289,7 +289,7 @@ class Af_Zz_Img_Phash extends Plugin {
 							if ($this->cache->getSize($cached_file) <= 0) {
 								$data = fetch_file_contents(array("url" => $src, "max_size" => MAX_CACHE_FILE_SIZE));
 
-								if ($data && strlen($data) > MIN_CACHE_FILE_SIZE) {
+								if ($data) {
 									$this->cache->put($cached_file, $data);
 								}
 							} else {
