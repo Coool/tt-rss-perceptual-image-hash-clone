@@ -286,7 +286,7 @@ class Af_Zz_Img_Phash extends Plugin {
 						if ($this->cache->isWritable()) {
 							$cached_file = sha1($src);
 
-							if ($this->cache->getSize($cached_file) <= 0) {
+							if (!$this->cache->exists($cached_file)) {
 								$data = fetch_file_contents(array("url" => $src, "max_size" => MAX_CACHE_FILE_SIZE));
 
 								if ($data) {
