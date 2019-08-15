@@ -48,7 +48,7 @@ class Af_Img_Phash extends Plugin {
 		$this->host = $host;
 		$this->cache = new DiskCache("images");
 
-		$host->add_hook($host::HOOK_ARTICLE_FILTER, $this);
+		$host->add_hook($host::HOOK_ARTICLE_FILTER, $this, 100);
 		$host->add_hook($host::HOOK_PREFS_TAB, $this);
 		$host->add_hook($host::HOOK_PREFS_EDIT_FEED, $this);
 		$host->add_hook($host::HOOK_PREFS_SAVE_FEED, $this);
