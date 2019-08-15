@@ -63,7 +63,7 @@ class Af_Img_Phash extends Plugin {
 		if ($args != "prefFeeds") return;
 
 		print "<div dojoType='dijit.layout.AccordionPane'
-			title=\"<i class='material-icons'>photo</i> ".$this->__( 'Filter similar images (af_zz_img_phash)')."\">";
+			title=\"<i class='material-icons'>photo</i> ".$this->__( 'Filter similar images (af_img_phash)')."\">";
 
 		if (DB_TYPE == "pgsql") {
 			if (true === IMG_HASH_SQL_FUNCTION) {
@@ -99,7 +99,7 @@ class Af_Img_Phash extends Plugin {
 
 		print_hidden("op", "pluginhandler");
 		print_hidden("method", "save");
-		print_hidden("plugin", "af_zz_img_phash");
+		print_hidden("plugin", "af_img_phash");
 
 		print "<h2>" . $this->__( "Global settings") . "</h2>";
 
