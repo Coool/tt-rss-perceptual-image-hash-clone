@@ -2,7 +2,7 @@
 use Jenssegers\ImageHash\Implementations\PerceptualHash;
 use Jenssegers\ImageHash\ImageHash;
 
-class Af_Zz_Img_Phash extends Plugin {
+class Af_Img_Phash extends Plugin {
 
 	/* @var PluginHost $host */
 	private $host;
@@ -53,10 +53,10 @@ class Af_Zz_Img_Phash extends Plugin {
 		$host->add_hook($host::HOOK_PREFS_EDIT_FEED, $this);
 		$host->add_hook($host::HOOK_PREFS_SAVE_FEED, $this);
 		$host->add_hook($host::HOOK_HOUSE_KEEPING, $this);
-		$host->add_hook($host::HOOK_RENDER_ARTICLE, $this);
-		$host->add_hook($host::HOOK_RENDER_ARTICLE_CDM, $this);
-		$host->add_hook($host::HOOK_RENDER_ARTICLE_API, $this);
-		$host->add_hook($host::HOOK_ARTICLE_IMAGE, $this);
+		$host->add_hook($host::HOOK_RENDER_ARTICLE, $this, 100);
+		$host->add_hook($host::HOOK_RENDER_ARTICLE_CDM, $this, 100);
+		$host->add_hook($host::HOOK_RENDER_ARTICLE_API, $this, 100);
+		$host->add_hook($host::HOOK_ARTICLE_IMAGE, $this, 100);
 	}
 
 	function hook_prefs_tab($args) {
