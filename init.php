@@ -56,6 +56,7 @@ class Af_Zz_Img_Phash extends Plugin {
 		$host->add_hook($host::HOOK_RENDER_ARTICLE, $this);
 		$host->add_hook($host::HOOK_RENDER_ARTICLE_CDM, $this);
 		$host->add_hook($host::HOOK_RENDER_ARTICLE_API, $this);
+		$host->add_hook($host::HOOK_ARTICLE_IMAGE, $this);
 	}
 
 	function hook_prefs_tab($args) {
@@ -379,6 +380,12 @@ class Af_Zz_Img_Phash extends Plugin {
 		$article = isset($row['headline']) ? $row['headline'] : $row['article'];
 
 		return $this->hook_render_article_cdm($article, true);
+	}
+
+	function hook_article_image($enclosures, $content, $site_url) {
+		$article = $this->hook_render_article_cdm(["content" => $content], false);
+
+		return ["", "", $article["content"]];
 	}
 
 	function hook_render_article_cdm($article, $api_mode = false) {
