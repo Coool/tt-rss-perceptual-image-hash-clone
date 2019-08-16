@@ -1,5 +1,5 @@
 #!/bin/sh
-TEMPLATE=af_zz_img_phash.pot
+TEMPLATE=af_img_phash.pot
 
 xgettext -k__ -kT_sprintf -L PHP -o $TEMPLATE *.php
 xgettext -k__ -L Java -j -o $TEMPLATE *.js
@@ -13,7 +13,7 @@ update_lang() {
 	fi
 }
 
-LANGS=`find locale -name 'af_zz_img_phash.po'`
+LANGS=`find locale -name 'af_img_phash.po'`
 
 for lang in $LANGS; do
 	echo Updating $lang...
