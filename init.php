@@ -220,7 +220,7 @@ class Af_Img_Phash extends Plugin {
 			if (!$api_mode) {
 				$b = $doc->createElement("a");
 				$b->setAttribute("href", "#");
-				$b->setAttribute("onclick", "showPhashSimilar(this)");
+				$b->setAttribute("onclick", "Plugins.Af_Img_Phash.showSimilar(this)");
 				$b->setAttribute("data-check-url", $this->absolutize_url($check_uri));
 				$b->appendChild(new DOMText("(similar)"));
 

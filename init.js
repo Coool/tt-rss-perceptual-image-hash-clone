@@ -1,27 +1,28 @@
-function showPhashSimilar(elem) {
-	try {
+Plugins.Af_Img_Phash = {
+	showSimilar: function(elem) {
+		try {
 
-		var url = elem.getAttribute("data-check-url");
+			const url = elem.getAttribute("data-check-url");
+			const query = "backend.php?op=pluginhandler&plugin=af_img_phash&method=showsimilar&param=" + encodeURIComponent(url);
 
-		var query = "backend.php?op=pluginhandler&plugin=af_zz_img_phash&method=showsimilar&param=" + encodeURIComponent(url);
+			if (dijit.byId("phashSimilarDlg"))
+				dijit.byId("phashSimilarDlg").destroyRecursive();
 
-		if (dijit.byId("phashSimilarDlg"))
-			dijit.byId("phashSimilarDlg").destroyRecursive();
+			const dialog = new dijit.Dialog({
+				id: "phashSimilarDlg",
+				title: __("Similar images"),
+				style: "width: 600px",
+				execute: function() {
+					//
+				},
+				href: query,
+			});
 
-		dialog = new dijit.Dialog({
-			id: "phashSimilarDlg",
-			title: __("Similar images"),
-			style: "width: 600px",
-			execute: function() {
+			dialog.show();
 
-			},
-			href: query,
-		});
-
-		dialog.show();
-
-	} catch (e) {
-		exception_error("showPhashSimilar", e);
+		} catch (e) {
+			exception_error("showSimilar", e);
+		}
 	}
-}
+};
 
