@@ -1,4 +1,4 @@
-## This plugin filters duplicate images using perceptual image hashing.
+## This plugin filters duplicate images using perceptual image hashing
 
 * Hashing library: https://github.com/jenssegers/imagehash
 * Count bits extension for PostgreSQL: https://github.com/sldab/count-bits
