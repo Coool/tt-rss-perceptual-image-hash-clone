@@ -194,10 +194,10 @@ class Af_Img_Phash extends Plugin {
 	private function rewrite_duplicate($doc, $elem, $api_mode = false) {
 
 		if ($elem->hasAttribute("src")) {
-			$uri = $this->absolutize_url($elem->getAttribute("src"));
+			$uri = validate_url($elem->getAttribute("src"));
 			$check_uri = $uri;
 		} else if ($elem->hasAttribute("poster")) {
-			$check_uri = $this->absolutize_url($elem->getAttribute("poster"));
+			$check_uri = validate_url($elem->getAttribute("poster"));
 
 			$video_source = $elem->getElementsByTagName("source")->item(0);
 
@@ -221,7 +221,7 @@ class Af_Img_Phash extends Plugin {
 				$b = $doc->createElement("a");
 				$b->setAttribute("href", "#");
 				$b->setAttribute("onclick", "Plugins.Af_Img_Phash.showSimilar(this)");
-				$b->setAttribute("data-check-url", $this->absolutize_url($check_uri));
+				$b->setAttribute("data-check-url", validate_url($check_uri));
 				$b->appendChild(new DOMText("(similar)"));
 
 				$p->appendChild(new DOMText(" "));
@@ -265,7 +265,7 @@ class Af_Img_Phash extends Plugin {
 			foreach ($imgs as $img) {
 
 				$src = $img->tagName == "video" ? $img->getAttribute("poster") : $img->getAttribute("src");
-				$src = $this->absolutize_url(rewrite_relative_url($article["link"], $src));
+				$src = validate_url(rewrite_relative_url($article["link"], $src));
 
 				$domain_found = $this->check_src_domain($src, $domains_list);
 
@@ -417,7 +417,7 @@ class Af_Img_Phash extends Plugin {
 			foreach ($imgs as $img) {
 
 				$src = $img->tagName == "video" ? $img->getAttribute("poster") : $img->getAttribute("src");
-				$src = $this->absolutize_url(rewrite_relative_url($article["link"], $src, $api_mode));
+				$src = validate_url(rewrite_relative_url($article["link"], $src, $api_mode));
 
 				$domain_found = $this->check_src_domain($src, $domains_list);
 
@@ -606,13 +606,6 @@ class Af_Img_Phash extends Plugin {
 			.$this->__( 'Close this window')."</button>
 			</footer>";
 
-	}
-
-	private function absolutize_url($src) {
-		if (strpos($src, "//") === 0)
-			$src = "https:" . $src;
-
-		return $src;
 	}
 
 	private function interval_days($days) {
