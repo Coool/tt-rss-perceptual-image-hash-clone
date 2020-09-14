@@ -17,8 +17,8 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: init.php:80
-msgid "Filter similar images (af_zz_img_phash)"
+#: init.php:66
+msgid "Filter similar images (af_img_phash)"
 msgstr ""
 
 #: init.php:114
