@@ -8,7 +8,7 @@ class Af_Img_Phash extends Plugin {
 	private $host;
 	private $default_domains_list = "imgur.com reddituploads.com pbs.twimg.com .redd.it i.sli.mg media.tumblr.com redditmedia.com kek.gg gfycat.com";
 	private $default_similarity = 5;
-	private $data_max_age = 240; // days
+	private $data_max_age = 30; // days
 
 	/* @var DiskCache $cache */
 	private $cache;
