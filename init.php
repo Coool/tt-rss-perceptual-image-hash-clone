@@ -257,7 +257,7 @@ class Af_Img_Phash extends Plugin {
 
 		$doc = new DOMDocument();
 
-		if (@$doc->loadHTML($article["content"])) {
+		if (!empty($article["content"]) && @$doc->loadHTML($article["content"])) {
 			$xpath = new DOMXPath($doc);
 
 			$imgs = $xpath->query("//img[@src]|//video[@poster]");
@@ -422,7 +422,7 @@ class Af_Img_Phash extends Plugin {
 
 		$article_guid = $article["guid"];
 
-		if (@$doc->loadHTML($article["content"])) {
+		if (!empty($article["content"]) && @$doc->loadHTML($article["content"])) {
 			$xpath = new DOMXPath($doc);
 
 			$imgs = $xpath->query("//img[@src]|//video[@poster]");
