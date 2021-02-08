@@ -405,7 +405,7 @@ class Af_Img_Phash extends Plugin {
 
 		if (DB_TYPE == "pgsql" && true !== IMG_HASH_SQL_FUNCTION) {
 			try { $res = $this->pdo->query("select 'unique_1bits'::regproc"); } catch (PDOException $e) { ; }
-			if (!$res || !$res->fetch()) return $article;
+			if (empty($res) || !$res->fetch()) return $article;
 		}
 
 		$owner_uid = $_SESSION["uid"];
