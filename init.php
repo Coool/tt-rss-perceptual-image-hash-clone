@@ -71,7 +71,7 @@ class Af_Img_Phash extends Plugin {
 			}
 			else {
 				try { $res = $this->pdo->query("select 'unique_1bits'::regproc"); } catch (PDOException $e) { ; }
-				if (!$res || !$res->fetch()) {
+				if (empty($res) || !$res->fetch()) {
 					print_error("Required function from count_bits extension not found.");
 				}
 			}
@@ -133,10 +133,9 @@ class Af_Img_Phash extends Plugin {
 
 		print "</form>";
 
-		$enabled_feeds = $this->host->get($this, "enabled_feeds");
-		if (!array($enabled_feeds)) $enabled_feeds = array();
+		$enabled_feeds = $this->filter_unknown_feeds(
+			$this->get_stored_array("enabled_feeds"));
 
-		$enabled_feeds = $this->filter_unknown_feeds($enabled_feeds);
 		$this->host->set($this, "enabled_feeds", $enabled_feeds);
 
 		if (count($enabled_feeds) > 0) {
@@ -157,11 +156,8 @@ class Af_Img_Phash extends Plugin {
 		print "<header>".$this->__( "Similar images")."</header>";
 		print "<section>";
 
-		$enabled_feeds = $this->host->get($this, "enabled_feeds");
-		if (!array($enabled_feeds)) $enabled_feeds = array();
-
-		$key = array_search($feed_id, $enabled_feeds);
-		$checked = $key !== FALSE ? "checked" : "";
+		$enabled_feeds = $this->get_stored_array("enabled_feeds");
+		$checked = in_array($feed_id, $enabled_feeds) ? "checked" : "";
 
 		print "<fieldset>";
 		print "<label class='checkbox'><input dojoType='dijit.form.CheckBox' type='checkbox' id='phash_similarity_enabled'
@@ -171,19 +167,26 @@ class Af_Img_Phash extends Plugin {
 		print "</section>";
 	}
 
-	function hook_prefs_save_feed($feed_id) {
-		$enabled_feeds = $this->host->get($this, "enabled_feeds");
-		if (!is_array($enabled_feeds)) $enabled_feeds = array();
+	private function get_stored_array($name) {
+		$tmp = $this->host->get($this, $name);
 
-		$enable = checkbox_to_sql_bool($_POST["phash_similarity_enabled"]);
+		if (!is_array($tmp)) $tmp = [];
+
+		return $tmp;
+	}
+
+	function hook_prefs_save_feed($feed_id) {
+		$enabled_feeds = $this->get_stored_array("enabled_feeds");
+
+		$enable = checkbox_to_sql_bool($_POST["phash_similarity_enabled"] ?? "");
 		$key = array_search($feed_id, $enabled_feeds);
 
 		if ($enable) {
-			if ($key === FALSE) {
+			if ($key === false) {
 				array_push($enabled_feeds, $feed_id);
 			}
 		} else {
-			if ($key !== FALSE) {
+			if ($key !== false) {
 				unset($enabled_feeds[$key]);
 			}
 		}
@@ -206,7 +209,7 @@ class Af_Img_Phash extends Plugin {
 			}
 		}
 
-		if ($check_uri && $uri) {
+		if (!empty($check_uri) && !empty($uri)) {
 
 			$p = $doc->createElement('p');
 
@@ -242,12 +245,9 @@ class Af_Img_Phash extends Plugin {
 		$domains_list = explode(" ", $domains_list);
 
 		if (!$enable_globally) {
-			$enabled_feeds = $this->host->get($this, "enabled_feeds");
+			if (!in_array($article["feed"]["id"],
+					$this->get_stored_array("enabled_feeds"))) {
 
-			if (is_array($enabled_feeds)) {
-				$key = array_search($article["feed"]["id"], $enabled_feeds);
-				if ($key === FALSE) return $article;
-			} else {
 				return $article;
 			}
 		}
@@ -321,7 +321,7 @@ class Af_Img_Phash extends Plugin {
 							$data_resource = @imagecreatefromstring($data);
 
 							if ($data_resource) {
-								$hash = $hasher->hash($data_resource);
+								$hash = (string)$hasher->hash($data_resource);
 
 								_debug("phash: calculated perceptual hash: $hash");
 
@@ -430,7 +430,7 @@ class Af_Img_Phash extends Plugin {
 			foreach ($imgs as $img) {
 
 				$src = $img->tagName == "video" ? $img->getAttribute("poster") : $img->getAttribute("src");
-				$src = validate_url(rewrite_relative_url($article["link"], $src, $api_mode));
+				$src = validate_url(rewrite_relative_url($article["link"], $src));
 
 				$domain_found = $this->check_src_domain($src, $domains_list);
 
@@ -499,7 +499,7 @@ class Af_Img_Phash extends Plugin {
 		$src_domain = parse_url($src, PHP_URL_HOST);
 
 		foreach ($domains_list as $domain) {
-			if (strstr($src_domain, $domain) !== FALSE) {
+			if (strstr($src_domain, $domain) !== false) {
 				return true;
 			}
 		}
