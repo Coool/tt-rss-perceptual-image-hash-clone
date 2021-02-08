@@ -45,7 +45,7 @@ class ImageHash
     {
         $destroy = false;
 
-        if (! is_resource($resource)) {
+        if (is_string($resource)) {
             $resource = $this->loadImageResource($resource);
             $destroy = true;
         }
