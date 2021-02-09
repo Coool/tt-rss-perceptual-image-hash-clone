@@ -420,9 +420,9 @@ class Af_Img_Phash extends Plugin {
 
 		$similarity = (int) $this->host->get($this, "similarity", $this->default_similarity);
 
-		$article_guid = $article["guid"];
+		$article_guid = ($article["guid"] ?? false);
 
-		if (!empty($article["content"]) && @$doc->loadHTML($article["content"])) {
+		if (!empty($article_guid) && !empty($article["content"]) && @$doc->loadHTML($article["content"])) {
 			$xpath = new DOMXPath($doc);
 
 			$imgs = $xpath->query("//img[@src]|//video[@poster]");
@@ -430,7 +430,7 @@ class Af_Img_Phash extends Plugin {
 			foreach ($imgs as $img) {
 
 				$src = $img->tagName == "video" ? $img->getAttribute("poster") : $img->getAttribute("src");
-				$src = validate_url(rewrite_relative_url($article["link"], $src));
+				$src = validate_url(rewrite_relative_url($article["link"] ?? "", $src));
 
 				$domain_found = $this->check_src_domain($src, $domains_list);
 
