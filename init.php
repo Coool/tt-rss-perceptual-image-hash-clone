@@ -287,7 +287,7 @@ class Af_Img_Phash extends Plugin {
 						$cached_file = sha1($src);
 						$cached_file_flag = "$cached_file.phash-flag";
 
-						if ($this->cache->isWritable()) {
+						if ($this->cache->is_writable()) {
 
 							if ($this->cache->exists($cached_file_flag)) {
 								_debug("phash: $cached_file_flag exists, looks like we failed on this URL before; skipping.");
@@ -326,8 +326,8 @@ class Af_Img_Phash extends Plugin {
 								_debug("phash: calculated perceptual hash: $hash");
 
 								// we managed to process this image, it should be safe to remove the flag now
-								if ($this->cache->isWritable() && $this->cache->exists($cached_file_flag))
-									unlink($this->cache->getFullPath($cached_file_flag));
+								if ($this->cache->is_writable() && $this->cache->exists($cached_file_flag))
+									unlink($this->cache->get_full_path($cached_file_flag));
 
 								if ($hash) {
 									$hash = base_convert($hash, 16, 10);
