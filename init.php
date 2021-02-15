@@ -396,7 +396,8 @@ class Af_Img_Phash extends Plugin {
 	}
 
 	function hook_article_image($enclosures, $content, $site_url) {
-		$article = $this->hook_render_article_cdm(["content" => $content], false);
+		// fake guid because of further checking in hook_render_article_cdm() which we don't need here
+		$article = $this->hook_render_article_cdm(["guid" => time(), "content" => $content], false);
 
 		return ["", "", $article["content"]];
 	}
