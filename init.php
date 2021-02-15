@@ -144,7 +144,7 @@ class Af_Img_Phash extends Plugin {
 			print "<ul class='panel panel-scrollable list list-unstyled'>";
 			foreach ($enabled_feeds as $f) {
 				print "<li><i class='material-icons'>rss_feed</i> <a href='#' onclick=\"CommonDialogs.editFeed($f)\">".
-					Feeds::getFeedTitle($f) . "</a></li>";
+					Feeds::_get_title($f) . "</a></li>";
 			}
 			print "</ul>";
 		}
@@ -522,7 +522,7 @@ class Af_Img_Phash extends Plugin {
 
 			$article_title = $this->T_sprintf("%s in %s (%s)",
 				"<span title='$article_guid'>$article_title</span>",
-				"<a href='#' onclick='viewfeed({feed: $feed_id})'>" . Feeds::getFeedTitle($feed_id) . "</a>",
+				"<a href='#' onclick='viewfeed({feed: $feed_id})'>" . Feeds::_get_title($feed_id) . "</a>",
 				make_local_datetime($updated, true));
 
 		} else {
