@@ -517,14 +517,14 @@ class Af_Img_Phash extends Plugin {
 		$sth->execute([$article_guid, $owner_uid]);
 
 		if ($row = $sth->fetch()) {
-			$article_title = $row["title"];
+			$article_title = htmlspecialchars($row["title"]);
 			$feed_id = $row["feed_id"];
 			$updated = $row["updated"];
 
-			$article_title = $this->T_sprintf("%s in %s (%s)",
+			$article_title = $this->T_sprintf("%s (%s) %s",
 				"<span title='$article_guid'>$article_title</span>",
-				"<a href='#' onclick='viewfeed({feed: $feed_id})'>" . Feeds::_get_title($feed_id) . "</a>",
-				make_local_datetime($updated, true));
+				make_local_datetime($updated, true),
+				"<a href='#' onclick='Feeds.open({feed: $feed_id})'><i class='material-icons'>rss_feed</i></a>");
 
 		} else {
 			$article_title = "N/A ($article_guid)";
@@ -543,9 +543,10 @@ class Af_Img_Phash extends Plugin {
 			<img class='trgm-related-thumb pull-right' src="<?= htmlspecialchars($url) ?>">
 
 			<fieldset>
-				<h2><a target='_blank' href="<?= htmlspecialchars($url) ?>">
-					<?= truncate_middle(htmlspecialchars($url), 48) ?>
-					</a></h2>
+					<label><?= $this->__("URL:") ?></label>
+					<a target='_blank' href="<?= htmlspecialchars($url) ?>">
+						<?= truncate_middle(htmlspecialchars($url), 48) ?>
+					</a>
 			</fieldset>
 		<?php
 
