@@ -128,7 +128,8 @@ class Af_Img_Phash extends Plugin {
 					</label>
 				</fieldset>
 
-				<?php print_button("submit", $this->__( "Save"), "class='alt-primary'") ?>
+				<hr/>
+				<?= \Controls\submit_tag($this->__( "Save")) ?>
 
 			</form>
 
@@ -139,6 +140,7 @@ class Af_Img_Phash extends Plugin {
 			$this->host->set($this, "enabled_feeds", $enabled_feeds);
 
 			if (count($enabled_feeds) > 0) { ?>
+				<hr/>
 				<h3><?= __("Currently enabled for (click to edit):") ?></h3>
 
 				<ul class='panel panel-scrollable list list-unstyled'>
