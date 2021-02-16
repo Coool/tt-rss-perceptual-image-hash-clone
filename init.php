@@ -62,109 +62,108 @@ class Af_Img_Phash extends Plugin {
 	function hook_prefs_tab($args) {
 		if ($args != "prefFeeds") return;
 
-		print "<div dojoType='dijit.layout.AccordionPane'
-			title=\"<i class='material-icons'>photo</i> ".$this->__( 'Filter similar images (af_img_phash)')."\">";
+		?>
+		<div dojoType='dijit.layout.AccordionPane'
+			title="<i class='material-icons'>photo</i> <?= $this->__( 'Filter similar images (af_img_phash)') ?>">
 
-		if (DB_TYPE == "pgsql") {
-			if (true === IMG_HASH_SQL_FUNCTION) {
-				print_error("Using SQL implementation of bit_count; UI performance may not be as responsive as installing extension 'https://github.com/sldab/count-bits'. See README.txt");
-			}
-			else {
-				try { $res = $this->pdo->query("select 'unique_1bits'::regproc"); } catch (PDOException $e) { ; }
-				if (empty($res) || !$res->fetch()) {
-					print_error("Required function from count_bits extension not found.");
+			<?php
+			if (DB_TYPE == "pgsql") {
+				if (true === IMG_HASH_SQL_FUNCTION) {
+					print_error("Using SQL implementation of bit_count; UI performance may not be as responsive as installing extension 'https://github.com/sldab/count-bits'. See README.txt");
+				}
+				else {
+					try { $res = $this->pdo->query("select 'unique_1bits'::regproc"); } catch (PDOException $e) { ; }
+					if (empty($res) || !$res->fetch()) {
+						print_error("Required function from count_bits extension not found.");
+					}
 				}
 			}
-		}
 
-		$similarity = (int) $this->host->get($this, "similarity", $this->default_similarity);
-		$domains_list = $this->host->get($this, "domains_list", $this->default_domains_list);
-		$enable_globally = $this->host->get($this, "enable_globally");
+			$similarity = (int) $this->host->get($this, "similarity", $this->default_similarity);
+			$domains_list = $this->host->get($this, "domains_list", $this->default_domains_list);
+			$enable_globally = $this->host->get($this, "enable_globally");
 
-		print "<form dojoType='dijit.form.Form'>";
+			?>
+			<form dojoType='dijit.form.Form'>
 
-		print "<script type='dojo/method' event='onSubmit' args='evt'>
-			evt.preventDefault();
-			if (this.validate()) {
-				console.log(dojo.objectToQuery(this.getValues()));
-				new Ajax.Request('backend.php', {
-					parameters: dojo.objectToQuery(this.getValues()),
-					onComplete: function(transport) {
-						Notify.info(transport.responseText);
+				<?= format_hidden("op", "pluginhandler") ?>
+				<?= format_hidden("method", "save") ?>
+				<?= format_hidden("plugin", "af_img_phash") ?>
+
+				<script type='dojo/method' event='onSubmit' args='evt'>
+					evt.preventDefault();
+					if (this.validate()) {
+						console.log(dojo.objectToQuery(this.getValues()));
+						new Ajax.Request('backend.php', {
+							parameters: dojo.objectToQuery(this.getValues()),
+							onComplete: function(transport) {
+								Notify.info(transport.responseText);
+							}
+						});
 					}
-				});
-				//this.reset();
-			}
-			</script>";
+					</script>
 
-		print_hidden("op", "pluginhandler");
-		print_hidden("method", "save");
-		print_hidden("plugin", "af_img_phash");
+				<h2><?= $this->__( "Global settings") ?></h2>
 
-		print "<h2>" . $this->__( "Global settings") . "</h2>";
+				<fieldset>
+					<label><?= $this->__( "Limit to domains (space-separated):") ?>"</label>
+					<textarea dojoType='dijit.form.SimpleTextarea' style='height: 100px; width: 500px; display: block'
+						required='1' name='domains_list'><?= $domains_list ?></textarea>
+				</fieldset>
 
-		print "<fieldset>";
+				<fieldset>
+					<label><?= $this->__( "Maximum Hamming distance:") ?></label>
+					<input dojoType='dijit.form.NumberSpinner'
+						placeholder='5' required='1' name='similarity' id='phash_img_similarity' value='<?= $similarity ?>'>
 
-		print "<label>".$this->__( "Limit to domains (space-separated):")."</label>";
-		print "<textarea dojoType='dijit.form.SimpleTextarea' style='height: 100px; width: 500px; display: block'
-			required='1' name='domains_list'>$domains_list</textarea>";
+					<div dojoType='dijit.Tooltip' connectId='phash_img_similarity' position='below'>
+					<?= $this->__( "Lower Hamming distance value indicates images being more similar.") ?>
+					</div>
+				</fieldset>
 
-		print "</fieldset><fieldset>";
+				<fieldset class='narrow'>
+					<label class='checkbox'>
+						<?= format_checkbox("phash_enable_globally", $enable_globally) ?>
+						<?= $this->__( "Enable for all feeds") ?>
+					</label>
+				</fieldset>
 
-		print "<label>".$this->__( "Maximum hamming distance:")."</label>";
-		print "<input dojoType='dijit.form.NumberSpinner'
-			placeholder='5' required='1' name='similarity' id='phash_img_similarity' value='$similarity'>";
+				<?php print_button("submit", $this->__( "Save"), "class='alt-primary'") ?>
 
-		print "<div dojoType='dijit.Tooltip' connectId='phash_img_similarity' position='below'>" .
-		  $this->__( "Lower hamming distance value indicates images being more similar.") . "</div>";
+			</form>
 
-		print "</fieldset><fieldset class='narrow'>";
+			<?php
+			$enabled_feeds = $this->filter_unknown_feeds(
+				$this->get_stored_array("enabled_feeds"));
 
-		print "<label class='checkbox'>";
-		print_checkbox("phash_enable_globally", $enable_globally);
-		print " " . $this->__( "Enable for all feeds");
-		print "</label>";
+			$this->host->set($this, "enabled_feeds", $enabled_feeds);
 
-		print "</fieldset>";
+			if (count($enabled_feeds) > 0) { ?>
+				<h3><?= __("Currently enabled for (click to edit):") ?></h3>
 
-		print "</table>";
-
-		print_button("submit", $this->__( "Save"), "class='alt-primary'");
-
-		print "</form>";
-
-		$enabled_feeds = $this->filter_unknown_feeds(
-			$this->get_stored_array("enabled_feeds"));
-
-		$this->host->set($this, "enabled_feeds", $enabled_feeds);
-
-		if (count($enabled_feeds) > 0) {
-			print "<h3>" . __("Currently enabled for (click to edit):") . "</h3>";
-
-			print "<ul class='panel panel-scrollable list list-unstyled'>";
-			foreach ($enabled_feeds as $f) {
-				print "<li><i class='material-icons'>rss_feed</i> <a href='#' onclick=\"CommonDialogs.editFeed($f)\">".
-					Feeds::_get_title($f) . "</a></li>";
-			}
-			print "</ul>";
-		}
-
-		print "</div>";
+				<ul class='panel panel-scrollable list list-unstyled'>
+				<?php foreach ($enabled_feeds as $f) { ?>
+					<li><i class='material-icons'>rss_feed</i> <a href='#' onclick="CommonDialogs.editFeed(<?= $f ?>)">
+						<?= htmlspecialchars(Feeds::_get_title($f)) ?></a></li>
+				<?php } ?>
+				</ul>
+			<?php	} ?>
+		</div>
+		<?php
 	}
 
 	function hook_prefs_edit_feed($feed_id) {
-		print "<header>".$this->__( "Similar images")."</header>";
-		print "<section>";
-
 		$enabled_feeds = $this->get_stored_array("enabled_feeds");
-		$checked = in_array($feed_id, $enabled_feeds) ? "checked" : "";
-
-		print "<fieldset>";
-		print "<label class='checkbox'><input dojoType='dijit.form.CheckBox' type='checkbox' id='phash_similarity_enabled'
-			name='phash_similarity_enabled' $checked> ".$this->__( 'Filter similar images')."</label>";
-		print "</fieldset>";
-
-		print "</section>";
+		?>
+		<header><?= $this->__( "Similar images") ?></header>
+		<section>
+			<fieldset>
+				<label class='checkbox'>
+					<?= format_checkbox("phash_similarity_enabled", in_array($feed_id, $enabled_feeds)) ?>
+					<?= $this->__( 'Filter similar images') ?></label>
+			</fieldset>
+		</section>
+		<?php
 	}
 
 	private function get_stored_array($name) {
