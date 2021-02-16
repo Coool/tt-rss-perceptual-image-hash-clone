@@ -1,28 +1,23 @@
+/* global fox, Plugins, dojo, xhrPost __ */
+
 Plugins.Af_Img_Phash = {
 	showSimilar: function(elem) {
-		try {
+		const url = elem.getAttribute("data-check-url");
 
-			const url = elem.getAttribute("data-check-url");
-			const query = "backend.php?op=pluginhandler&plugin=af_img_phash&method=showsimilar&param=" + encodeURIComponent(url);
+		const dialog = new fox.SingleUseDialog({
+			title: __("Similar images"),
+			content: __("Loading, please wait..."),
+		});
 
-			if (dijit.byId("phashSimilarDlg"))
-				dijit.byId("phashSimilarDlg").destroyRecursive();
+		const tmph = dojo.connect(dialog, 'onShow', function () {
+			dojo.disconnect(tmph);
 
-			const dialog = new dijit.Dialog({
-				id: "phashSimilarDlg",
-				title: __("Similar images"),
-				style: "width: 600px",
-				execute: function() {
-					//
-				},
-				href: query,
+			xhrPost("backend.php", {op: "pluginhandler", plugin: "af_img_phash", method: "showsimilar", url: url}, (transport) => {
+				dialog.attr('content', transport.responseText);
 			});
+		});
 
-			dialog.show();
-
-		} catch (e) {
-			exception_error("showSimilar", e);
-		}
+		dialog.show();
 	}
 };
 

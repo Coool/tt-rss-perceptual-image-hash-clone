@@ -534,18 +534,20 @@ class Af_Img_Phash extends Plugin {
 	}
 
 	function showsimilar() {
-		$url = $_REQUEST["param"];
-		$url_htmlescaped = htmlspecialchars($url);
-
+		$url = $_REQUEST["url"];
 		$owner_uid = $_SESSION["uid"];
-
 		$similarity = (int) $this->host->get($this, "similarity", $this->default_similarity);
 
-		print "<section class='narrow'>";
+		?>
+		<section class='narrow'>
+			<img class='trgm-related-thumb pull-right' src="<?= htmlspecialchars($url) ?>">
 
-		print "<img class='trgm-related-thumb pull-right' src=\"$url_htmlescaped\">";
-
-		print "<fieldset><h2><a target='_blank' href=\"$url_htmlescaped\">".truncate_middle($url_htmlescaped, 48)."</a></h2></fieldset>";
+			<fieldset>
+				<h2><a target='_blank' href="<?= htmlspecialchars($url) ?>">
+					<?= truncate_middle(htmlspecialchars($url), 48) ?>
+					</a></h2>
+			</fieldset>
+		<?php
 
 		$sth = $this->pdo->prepare("SELECT phash FROM ttrss_plugin_img_phash_urls WHERE
 			owner_uid = ? AND
@@ -568,43 +570,54 @@ class Af_Img_Phash extends Plugin {
 				$article_title = $this->guid_to_article_title($article_guid, $owner_uid);
 				$created_at = $row['created_at'];
 
-				print "<fieldset class='narrow'><label class='inline'>".$this->__( "Perceptual hash:")."</label>".
-					base_convert($phash, 10, 16) . "</fieldset>";
-				print "<fieldset class='narrow'><label class='inline'>".$this->__( "Belongs to:")."</label>
-					$article_title</fieldset>";
-				print "<fieldset class='narrow'><label class='inline'>".$this->__( "Registered:")."</label>
-					$created_at</fieldset>";
+				?>
+				<fieldset class='narrow'><label><?= $this->__( "Perceptual hash:") ?></label>
+					<?= base_convert($phash, 10, 16) ?>
+				</fieldset>
+				<fieldset class='narrow'><label><?= $this->__( "Belongs to:") ?></label>
+					<?= $article_title ?>
+				</fieldset>
+				<fieldset class='narrow'><label><?= $this->__( "Registered:") ?></label>
+					<?= $created_at ?>
+				</fieldset>
 
-				$sth = $this->pdo->prepare("SELECT url, article_guid, ".$this->bitcount_func($phash)." AS distance
-					FROM ttrss_plugin_img_phash_urls WHERE
-					".$this->bitcount_func($phash)." <= ?
-					ORDER BY distance LIMIT 30");
-				$sth->execute([$similarity]);
+				<ul class='panel panel-scrollable list list-unstyled'>
+					<?php
 
-				print "<ul class='panel panel-scrollable list list-unstyled'>";
+					$sth = $this->pdo->prepare("SELECT url, article_guid, ".$this->bitcount_func($phash)." AS distance
+						FROM ttrss_plugin_img_phash_urls WHERE
+						".$this->bitcount_func($phash)." <= ?
+						ORDER BY distance LIMIT 30");
+					$sth->execute([$similarity]);
 
-				while ($line = $sth->fetch()) {
-					print "<li>";
+					while ($line = $sth->fetch()) {
+						$url = htmlspecialchars($line["url"]);
+						$distance = $line["distance"];
+						$rel_article_guid = $line["article_guid"];
+						$article_title = $this->guid_to_article_title($rel_article_guid, $owner_uid);
 
-					$url = htmlspecialchars($line["url"]);
-					$distance = $line["distance"];
-					$rel_article_guid = $line["article_guid"];
-					$article_title = $this->guid_to_article_title($rel_article_guid, $owner_uid);
+						$is_checked = ($rel_article_guid == $article_guid) ? "checked" : "";
 
-					$is_checked = ($rel_article_guid == $article_guid) ? "checked" : "";
+						?>
+						<li>
+							<div>
+								<a target='_blank' href="<?= $url ?>"><?= truncate_middle($url, 48) ?></a>
 
-					print "<div><a target='_blank' href=\"$url\">".truncate_middle($url, 48)."</a> ".
-						"(" . $this->T_sprintf("Distance: %d", $distance) . ")";
+								(<?= $this->T_sprintf("Distance: %d", $distance) ?>)
 
-					if ($is_checked) print " <strong>(".$this->__( "Original").")</strong>";
+								<?php if ($is_checked) { ?>
+									<strong>(<?= $this->__( "Original") ?>)</strong>
+								<?php } ?>
 
-					print "<br/>$article_title";
-					print "<br/><img class='trgm-related-thumb' src=\"$url\"></div>";
-
-					print "</li>";
-				}
-
-				print "</ul>";
+								<div><?= $article_title ?></div>
+								<div><img class='trgm-related-thumb' src="<?= $url ?>"></div>
+							</div>
+						</li>
+						<?php
+					}
+					?>
+				</ul>
+				<?php
 
 			} else {
 				print "<div class='text-error'>" . $this->__( "No information found for this URL.") . "</div>";
@@ -613,13 +626,16 @@ class Af_Img_Phash extends Plugin {
 			print "<div class='text-error'>" . $this->__( "No information found for this URL.") . "</div>";
 		}
 
-		print "</section>";
+		?>
+		</section>
 
-		print "<footer class='text-center'>
-			<button dojoType='dijit.form.Button' onclick=\"dijit.byId('phashSimilarDlg').hide()\">"
-			.$this->__( 'Close this window')."</button>
-			</footer>";
+		<footer class='text-center'>
+			<button dojoType='dijit.form.Button' class='alt-primary' type='submit'>
+				<?= $this->__( 'Close this window') ?>
+			</button>
+		</footer>
 
+		<?php
 	}
 
 	private function interval_days($days) {
@@ -638,4 +654,3 @@ class Af_Img_Phash extends Plugin {
 		}
 	}
 }
-?>
