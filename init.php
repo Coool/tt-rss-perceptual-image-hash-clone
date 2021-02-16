@@ -123,7 +123,7 @@ class Af_Img_Phash extends Plugin {
 
 				<fieldset class='narrow'>
 					<label class='checkbox'>
-						<?= format_checkbox("phash_enable_globally", $enable_globally) ?>
+						<?= \Controls\checkbox_tag("phash_enable_globally", $enable_globally) ?>
 						<?= $this->__( "Enable for all feeds") ?>
 					</label>
 				</fieldset>
@@ -161,7 +161,7 @@ class Af_Img_Phash extends Plugin {
 		<section>
 			<fieldset>
 				<label class='checkbox'>
-					<?= format_checkbox("phash_similarity_enabled", in_array($feed_id, $enabled_feeds)) ?>
+					<?= \Controls\checkbox_tag("phash_similarity_enabled", in_array($feed_id, $enabled_feeds)) ?>
 					<?= $this->__( 'Filter similar images') ?></label>
 			</fieldset>
 		</section>
