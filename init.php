@@ -106,7 +106,7 @@ class Af_Img_Phash extends Plugin {
 				<h2><?= $this->__( "Global settings") ?></h2>
 
 				<fieldset>
-					<label><?= $this->__( "Limit to domains (space-separated):") ?>"</label>
+					<label><?= $this->__( "Limit to domains (space-separated):") ?></label>
 					<textarea dojoType='dijit.form.SimpleTextarea' style='height: 100px; width: 500px; display: block'
 						required='1' name='domains_list'><?= $domains_list ?></textarea>
 				</fieldset>
