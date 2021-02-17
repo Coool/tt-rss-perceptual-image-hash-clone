@@ -1,4 +1,4 @@
-/* global fox, Plugins, dojo, xhrPost __ */
+/* global fox, Plugins, dojo, xhrPost, App, __ */
 
 Plugins.Af_Img_Phash = {
 	showSimilar: function(elem) {
@@ -12,7 +12,7 @@ Plugins.Af_Img_Phash = {
 		const tmph = dojo.connect(dialog, 'onShow', function () {
 			dojo.disconnect(tmph);
 
-			xhrPost("backend.php", {op: "pluginhandler", plugin: "af_img_phash", method: "showsimilar", url: url}, (transport) => {
+			xhrPost("backend.php", App.getPhArgs("af_img_phash", "showsimilar", {url: url}) , (transport) => {
 				dialog.attr('content', transport.responseText);
 			});
 		});

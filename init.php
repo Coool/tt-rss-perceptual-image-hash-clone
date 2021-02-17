@@ -86,9 +86,7 @@ class Af_Img_Phash extends Plugin {
 			?>
 			<form dojoType='dijit.form.Form'>
 
-				<?= \Controls\hidden_tag("op", "pluginhandler") ?>
-				<?= \Controls\hidden_tag("method", "save") ?>
-				<?= \Controls\hidden_tag("plugin", "af_img_phash") ?>
+				<?= \Controls\pluginhandler_tags($this, "save") ?>
 
 				<script type='dojo/method' event='onSubmit' args='evt'>
 					evt.preventDefault();
