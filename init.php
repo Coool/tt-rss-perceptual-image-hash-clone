@@ -88,18 +88,15 @@ class Af_Img_Phash extends Plugin {
 
 				<?= \Controls\pluginhandler_tags($this, "save") ?>
 
-				<script type='dojo/method' event='onSubmit' args='evt'>
+				<script type="dojo/method" event="onSubmit" args="evt">
 					evt.preventDefault();
 					if (this.validate()) {
-						console.log(dojo.objectToQuery(this.getValues()));
-						new Ajax.Request('backend.php', {
-							parameters: dojo.objectToQuery(this.getValues()),
-							onComplete: function(transport) {
-								Notify.info(transport.responseText);
-							}
-						});
+						Notify.progress('Saving data...', true);
+						xhrPost("backend.php", this.getValues(), (transport) => {
+							Notify.info(transport.responseText);
+						})
 					}
-					</script>
+				</script>
 
 				<h2><?= $this->__( "Global settings") ?></h2>
 
