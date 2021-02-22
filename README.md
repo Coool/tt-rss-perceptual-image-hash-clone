@@ -14,9 +14,5 @@
 Note that using this SQL hashing function would be several orders of magnitude slower than count bits which will affect overal tt-rss performance.
 
 - Install SQL hashing function in `sql/bitcount_funcdef_pgsql.sql`
-- Add the following option to `config.php`:
-
-```
-	define('IMG_HASH_SQL_FUNCTION', true);
-```
+- Set config option: TTRSS_IMG_HASH_SQL_FUNCTION (either via environment or through `config.php`)
 

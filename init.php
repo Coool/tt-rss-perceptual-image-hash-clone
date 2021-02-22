@@ -48,6 +48,8 @@ class Af_Img_Phash extends Plugin {
 		$this->host = $host;
 		$this->cache = new DiskCache("images");
 
+		Config::add("IMG_HASH_SQL_FUNCTION", "");
+
 		$host->add_hook($host::HOOK_ARTICLE_FILTER, $this, 100);
 		$host->add_hook($host::HOOK_PREFS_TAB, $this);
 		$host->add_hook($host::HOOK_PREFS_EDIT_FEED, $this);
@@ -67,8 +69,8 @@ class Af_Img_Phash extends Plugin {
 			title="<i class='material-icons'>photo</i> <?= $this->__( 'Filter similar images (af_img_phash)') ?>">
 
 			<?php
-			if (DB_TYPE == "pgsql") {
-				if (true === IMG_HASH_SQL_FUNCTION) {
+			if (Config::get(Config::DB_TYPE) == "pgsql") {
+				if (Config::get("IMG_HASH_SQL_FUNCTION")) {
 					print_error("Using SQL implementation of bit_count; UI performance may not be as responsive as installing extension 'https://github.com/sldab/count-bits'. See README.txt");
 				}
 				else {
@@ -291,7 +293,7 @@ class Af_Img_Phash extends Plugin {
 							$this->cache->touch($cached_file_flag);
 
 							if (!$this->cache->exists($cached_file)) {
-								$data = fetch_file_contents(array("url" => $src, "max_size" => MAX_CACHE_FILE_SIZE));
+								$data = fetch_file_contents(array("url" => $src, "max_size" => Config::get(Config::MAX_CACHE_FILE_SIZE)));
 
 								if ($data) {
 									$this->cache->put($cached_file, $data);
@@ -304,7 +306,7 @@ class Af_Img_Phash extends Plugin {
 						} else {
 							_debug("phash: cache directory is not writable");
 
-							$data = fetch_file_contents(array("url" => $src, "max_size" => MAX_CACHE_FILE_SIZE));
+							$data = fetch_file_contents(array("url" => $src, "max_size" => Config::get(Config::MAX_CACHE_FILE_SIZE)));
 						}
 
 						if ($data) {
@@ -398,7 +400,7 @@ class Af_Img_Phash extends Plugin {
 
 	function hook_render_article_cdm($article, $api_mode = false) {
 
-		if (DB_TYPE == "pgsql" && true !== IMG_HASH_SQL_FUNCTION) {
+		if (Config::get(Config::DB_TYPE) == "pgsql" && !Config::get("IMG_HASH_SQL_FUNCTION")) {
 			try { $res = $this->pdo->query("select 'unique_1bits'::regproc"); } catch (PDOException $e) { ; }
 			if (empty($res) || !$res->fetch()) return $article;
 		}
@@ -634,7 +636,7 @@ class Af_Img_Phash extends Plugin {
 	}
 
 	private function interval_days($days) {
-		if (DB_TYPE == "pgsql") {
+		if (Config::get(Config::DB_TYPE) == "pgsql") {
 			return "NOW() - INTERVAL '$days days' ";
 		} else {
 			return "DATE_SUB(NOW(), INTERVAL $days DAY) ";
@@ -642,8 +644,8 @@ class Af_Img_Phash extends Plugin {
 	}
 
 	private function bitcount_func($phash) {
-		if (DB_TYPE == "pgsql") {
-			return true === IMG_HASH_SQL_FUNCTION ? "bit_count('$phash' # phash)" : "unique_1bits('$phash', phash)";
+		if (Config::get(Config::DB_TYPE) == "pgsql") {
+			return Config::get("IMG_HASH_SQL_FUNCTION") ? "bit_count('$phash' # phash)" : "unique_1bits('$phash', phash)";
 		} else {
 			return "bit_count('$phash' ^ phash)";
 		}
