@@ -1,6 +1,8 @@
 <?php
-use Jenssegers\ImageHash\Implementations\PerceptualHash;
-use Jenssegers\ImageHash\ImageHash;
+require_once __DIR__ . "/vendor/autoload.php";
+
+use \Jenssegers\ImageHash\Implementations\PerceptualHash;
+use \Jenssegers\ImageHash\ImageHash;
 
 class Af_Img_Phash extends Plugin {
 
