@@ -6,13 +6,13 @@ use \Jenssegers\ImageHash\ImageHash;
 
 class Af_Img_Phash extends Plugin {
 
-	/* @var PluginHost $host */
+	/** @var PluginHost $host */
 	private $host;
 	private $default_domains_list = "imgur.com reddituploads.com pbs.twimg.com .redd.it i.sli.mg media.tumblr.com redditmedia.com kek.gg gfycat.com";
 	private $default_similarity = 5;
 	private $data_max_age = 30; // days
 
-	/* @var DiskCache $cache */
+	/** @var DiskCache $cache */
 	private $cache;
 
 	function about() {
@@ -287,6 +287,7 @@ class Af_Img_Phash extends Plugin {
 
 						if ($this->cache->is_writable()) {
 
+							// check for .flag & create it
 							if ($this->cache->exists($cached_file_flag)) {
 								_debug("phash: $cached_file_flag exists, looks like we failed on this URL before; skipping.");
 								continue;
@@ -294,32 +295,21 @@ class Af_Img_Phash extends Plugin {
 
 							$this->cache->touch($cached_file_flag);
 
+							// check for local cache
 							if (!$this->cache->exists($cached_file)) {
 								$data = fetch_file_contents(array("url" => $src, "max_size" => Config::get(Config::MAX_CACHE_FILE_SIZE)));
 
 								if ($data) {
 									$this->cache->put($cached_file, $data);
 								}
-							} else {
-								_debug("phash: reading from local cache: $cached_file");
-
-								$data = $this->cache->get($cached_file);
 							}
-						} else {
-							_debug("phash: cache directory is not writable");
 
-							$data = fetch_file_contents(array("url" => $src, "max_size" => Config::get(Config::MAX_CACHE_FILE_SIZE)));
-						}
+							if ($this->cache->exists($cached_file)) {
 
-						if ($data) {
+								$implementation = new PerceptualHash();
+								$hasher = new ImageHash($implementation);
 
-							$implementation = new PerceptualHash();
-							$hasher = new ImageHash($implementation);
-
-							$data_resource = @imagecreatefromstring($data);
-
-							if ($data_resource) {
-								$hash = (string)$hasher->hash($data_resource);
+								$hash = (string)$hasher->hash($this->cache->get_full_path($cached_file));
 
 								_debug("phash: calculated perceptual hash: $hash");
 
@@ -344,15 +334,12 @@ class Af_Img_Phash extends Plugin {
 										(?, ?, ?, ?)");
 									$sth->execute([$src, $article_guid, $owner_uid, $hash]);
 								}
-
-							} else {
-								_debug("phash: unable to load image: $src");
 							}
 
 						} else {
-							_debug("phash: unable to fetch: $src");
+							_debug("phash: cache directory is not writable");
+							return $article;
 						}
-
 					}
 				}
 			}
