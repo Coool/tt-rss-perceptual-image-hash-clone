@@ -16,7 +16,7 @@ class Af_Img_Phash extends Plugin {
 	private $cache;
 
 	function about() {
-		return array(1.0,
+		return array(null,
 			"Filter duplicate images using perceptual hashing (requires GD)",
 			"fox",
 			false,
