@@ -52,15 +52,20 @@ class Af_Img_Phash extends Plugin {
 
 		Config::add("IMG_HASH_SQL_FUNCTION", "");
 
-		$host->add_hook($host::HOOK_ARTICLE_FILTER, $this, 100);
-		$host->add_hook($host::HOOK_PREFS_TAB, $this);
-		$host->add_hook($host::HOOK_PREFS_EDIT_FEED, $this);
-		$host->add_hook($host::HOOK_PREFS_SAVE_FEED, $this);
-		$host->add_hook($host::HOOK_HOUSE_KEEPING, $this);
-		$host->add_hook($host::HOOK_RENDER_ARTICLE, $this, 100);
-		$host->add_hook($host::HOOK_RENDER_ARTICLE_CDM, $this, 100);
-		$host->add_hook($host::HOOK_RENDER_ARTICLE_API, $this, 100);
-		$host->add_hook($host::HOOK_ARTICLE_IMAGE, $this, 100);
+		$migrations = new Db_Migrations();
+		$migrations->initialize_for_plugin($this);
+
+		if ($migrations->migrate()) {
+			$host->add_hook($host::HOOK_ARTICLE_FILTER, $this, 100);
+			$host->add_hook($host::HOOK_PREFS_TAB, $this);
+			$host->add_hook($host::HOOK_PREFS_EDIT_FEED, $this);
+			$host->add_hook($host::HOOK_PREFS_SAVE_FEED, $this);
+			$host->add_hook($host::HOOK_HOUSE_KEEPING, $this);
+			$host->add_hook($host::HOOK_RENDER_ARTICLE, $this, 100);
+			$host->add_hook($host::HOOK_RENDER_ARTICLE_CDM, $this, 100);
+			$host->add_hook($host::HOOK_RENDER_ARTICLE_API, $this, 100);
+			$host->add_hook($host::HOOK_ARTICLE_IMAGE, $this, 100);
+		}
 	}
 
 	function hook_prefs_tab($args) {

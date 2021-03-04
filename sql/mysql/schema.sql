@@ -1,6 +1,4 @@
-drop table if exists ttrss_plugin_img_phash_urls;
-
-create table ttrss_plugin_img_phash_urls(
+create table if not exists ttrss_plugin_img_phash_urls(
   id integer not null PRIMARY KEY auto_increment,
   article_guid varchar(250) not null,
   url text not null,

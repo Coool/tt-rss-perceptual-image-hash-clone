@@ -1,6 +1,4 @@
-drop table ttrss_plugin_img_phash_urls;
-
-create table ttrss_plugin_img_phash_urls(
+create table if not exists ttrss_plugin_img_phash_urls(
 	id serial not null,
 	article_guid varchar(250) not null,
 	url text not null,
