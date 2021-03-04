@@ -3,6 +3,16 @@
 * Hashing library: https://github.com/jenssegers/imagehash
 * Count bits extension for PostgreSQL: https://github.com/sldab/count-bits
 
+You can use this database image with stock tt-rss docker setup: https://hub.docker.com/repository/docker/cthulhoo/postgres-count-bits
+
+(docker-compose.override.yml):
+
+```yml
+services:
+  db:
+    image: cthulhoo/postgres-count-bits:13-latest
+```
+
 ### Installation
 
 - Git clone to ``plugins.local/af_img_phash``
