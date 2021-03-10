@@ -214,27 +214,31 @@ class Af_Img_Phash extends Plugin {
 
 		if (!empty($check_uri) && !empty($uri)) {
 
-			$p = $doc->createElement('p');
+			$det = $doc->createElement("details");
+			$sum = $doc->createElement("summary");
 
 			$a = $doc->createElement("a");
+			$a->appendChild(new DOMText(truncate_middle($uri, 48, "...")));
 			$a->setAttribute("href", $uri);
 			$a->setAttribute("target", "_blank");
-			$a->appendChild(new DOMText(truncate_middle($uri, 48, "...")));
+			$a->setAttribute("rel", "noopener noreferrer");
 
-			$p->appendChild($a);
+			$sum->appendChild($a);
+			$det->appendChild($sum);
 
 			if (!$api_mode) {
-				$b = $doc->createElement("a");
-				$b->setAttribute("href", "#");
-				$b->setAttribute("onclick", "Plugins.Af_Img_Phash.showSimilar(this)");
-				$b->setAttribute("data-check-url", validate_url($check_uri));
-				$b->appendChild(new DOMText("(similar)"));
+				$a = $doc->createElement("a");
+				$a->setAttribute("href", "#");
+				$a->setAttribute("onclick", "Plugins.Af_Img_Phash.showSimilar(this)");
+				$a->setAttribute("data-check-url", validate_url($check_uri));
+				$a->appendChild(new DOMText("(similar)"));
 
-				$p->appendChild(new DOMText(" "));
-				$p->appendChild($b);
+				$sum->appendChild(new DOMText(" "));
+				$sum->appendChild($a);
 			}
 
-			$elem->parentNode->replaceChild($p, $elem);
+			$elem->parentNode->replaceChild($det, $elem);
+			$det->appendChild($elem);
 		}
 	}
 
