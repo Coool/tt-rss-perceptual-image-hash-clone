@@ -197,7 +197,7 @@ class Af_Img_Phash extends Plugin {
 		$this->host->set($this, "enabled_feeds", $enabled_feeds);
 	}
 
-	private function rewrite_duplicate($doc, $elem, $api_mode = false) {
+	private function rewrite_duplicate(DOMDocument $doc, DOMNode $elem, bool $api_mode = false) {
 
 		if ($elem->hasAttribute("src")) {
 			$uri = validate_url($elem->getAttribute("src"));
@@ -214,19 +214,27 @@ class Af_Img_Phash extends Plugin {
 
 		if (!empty($check_uri) && !empty($uri)) {
 
-			$det = $doc->createElement("details");
-			$sum = $doc->createElement("summary");
+			if ($api_mode) {
+				$a = $doc->createElement("a");
+				$a->appendChild(new DOMText(truncate_middle($uri, 48, "...")));
+				$a->setAttribute("href", $uri);
+				$a->setAttribute("target", "_blank");
+				$a->setAttribute("rel", "noopener noreferrer");
 
-			$a = $doc->createElement("a");
-			$a->appendChild(new DOMText(truncate_middle($uri, 48, "...")));
-			$a->setAttribute("href", $uri);
-			$a->setAttribute("target", "_blank");
-			$a->setAttribute("rel", "noopener noreferrer");
+				$elem->parentNode->replaceChild($a, $elem);
+			} else {
+				$det = $doc->createElement("details");
+				$sum = $doc->createElement("summary");
 
-			$sum->appendChild($a);
-			$det->appendChild($sum);
+				$a = $doc->createElement("a");
+				$a->appendChild(new DOMText(truncate_middle($uri, 48, "...")));
+				$a->setAttribute("href", $uri);
+				$a->setAttribute("target", "_blank");
+				$a->setAttribute("rel", "noopener noreferrer");
 
-			if (!$api_mode) {
+				$sum->appendChild($a);
+				$det->appendChild($sum);
+
 				$a = $doc->createElement("a");
 				$a->setAttribute("href", "#");
 				$a->setAttribute("onclick", "Plugins.Af_Img_Phash.showSimilar(this)");
@@ -235,10 +243,10 @@ class Af_Img_Phash extends Plugin {
 
 				$sum->appendChild(new DOMText(" "));
 				$sum->appendChild($a);
-			}
 
-			$elem->parentNode->replaceChild($det, $elem);
-			$det->appendChild($elem);
+				$elem->parentNode->replaceChild($det, $elem);
+				$det->appendChild($elem);
+			}
 		}
 	}
 
@@ -379,7 +387,6 @@ class Af_Img_Phash extends Plugin {
 	}
 
 	function hook_render_article($article) {
-
 		return $this->hook_render_article_cdm($article);
 	}
 
@@ -391,35 +398,28 @@ class Af_Img_Phash extends Plugin {
 
 	function hook_article_image($enclosures, $content, $site_url) {
 		// fake guid because of further checking in hook_render_article_cdm() which we don't need here
-		$article = $this->hook_render_article_cdm(["guid" => time(), "content" => $content], false);
+		$article = $this->hook_render_article_cdm(["guid" => time(), "content" => $content], true);
 
 		return ["", "", $article["content"]];
 	}
 
 	function hook_render_article_cdm($article, $api_mode = false) {
 
-		if (Config::get(Config::DB_TYPE) == "pgsql" && !Config::get("IMG_HASH_SQL_FUNCTION")) {
+		/* if (Config::get(Config::DB_TYPE) == "pgsql" && !Config::get("IMG_HASH_SQL_FUNCTION")) {
 			try { $res = $this->pdo->query("select 'unique_1bits'::regproc"); } catch (PDOException $e) { ; }
 			if (empty($res) || !$res->fetch()) return $article;
-		}
+		} */
 
 		$owner_uid = $_SESSION["uid"];
-
-		$doc = new DOMDocument();
-
-		$domains_list = $this->host->get($this, "domains_list", $this->default_domains_list);
-
-		$domains_list = explode(" ", $domains_list);
-
-		$need_saving = false;
-
+		$domains_list = explode(" ", $this->host->get($this, "domains_list", $this->default_domains_list));
 		$similarity = (int) $this->host->get($this, "similarity", $this->default_similarity);
 
+		$doc = new DOMDocument();
 		$article_guid = ($article["guid"] ?? false);
+		$need_saving = false;
 
 		if (!empty($article_guid) && !empty($article["content"]) && @$doc->loadHTML($article["content"])) {
 			$xpath = new DOMXPath($doc);
-
 			$imgs = $xpath->query("//img[@src]|//video[@poster]");
 
 			foreach ($imgs as $img) {
@@ -440,9 +440,7 @@ class Af_Img_Phash extends Plugin {
 
 					if ($sth->fetch()) {
 						$need_saving = true;
-
 						$this->rewrite_duplicate($doc, $img, $api_mode);
-
 						continue;
 					}
 
@@ -470,7 +468,6 @@ class Af_Img_Phash extends Plugin {
 
 							if ($test_guid != $article_guid) {
 								$need_saving = true;
-
 								$this->rewrite_duplicate($doc, $img, $api_mode);
 							}
 						}
@@ -483,7 +480,6 @@ class Af_Img_Phash extends Plugin {
 
 		return $article;
 	}
-
 
 	function hook_house_keeping() {
 		$this->pdo->query("DELETE FROM ttrss_plugin_img_phash_urls
